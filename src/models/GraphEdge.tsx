@@ -26,6 +26,7 @@ class GraphEdge {
         id: this.elementId,
         source: this.sourceId,
         target: this.targetId,
+				weight: this.weight,
       }
     }
   }

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { type CSSProperties } from 'react';
 import cytoscape from 'cytoscape';
 import {
@@ -14,12 +14,38 @@ import { setDifference } from '../utilities/set';
 
 type GraphElement = GraphNode | GraphEdge;
 
+const initialLayoutOptions = {
+	name: 'cola',
+	nodeSpacing: 30,
+	refresh: 1,
+	infinite: false,
+	animate: true,
+	maxSimulationTime: 5000,
+}
+
+const layoutOptions = {
+	name: 'cola',
+	nodeSpacing: 30,
+	refresh: 1,
+	infinite: false,
+	edgeLength: (edge: EdgeSingular) => {
+		return edge.data('weight') * 50;
+	},
+	randomize: false,
+	animate: true,
+	maxSimulationTime: 5000,
+};
+
 const addElements = (cy: Core, newElements: Set<GraphElement>) => {
   cy.nodes().lock();
   const toAdd = [...newElements].map((el) => el.toElement());
   cy.add(toAdd);
-  cy.layout({ name: 'cola' }).run();
-  cy.nodes().unlock();
+  const initialLayout = cy.layout(initialLayoutOptions).run();
+	setTimeout(() => {
+		initialLayout.stop();
+		cy.layout(layoutOptions).run();
+		cy.nodes().unlock();
+	}, 3000);
 };
 
 const stylesheet = [
@@ -69,12 +95,12 @@ export default function Graph(props: GraphProps): React.ReactElement {
     style,
   } = props;
 
-  const ref = React.useRef<HTMLDivElement | null>(null);
-  const [cy, setCy] = React.useState<Core | null>(null);
-  const currentElementSet = React.useMemo(() => new Set(elements), [elements]);
-  const [elementSet, setElementSet] = React.useState<Set<GraphElement>>(() => new Set([]));
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [cy, setCy] = useState<Core | null>(null);
+  const currentElementSet = useMemo(() => new Set(elements), [elements]);
+  const [elementSet, setElementSet] = useState<Set<GraphElement>>(() => new Set([]));
 
-  React.useEffect(() => {
+  useEffect(() => {
     const diff = setDifference(currentElementSet, elementSet);
     if (cy && diff.size > 0) {
       addElements(cy, diff);
@@ -82,7 +108,7 @@ export default function Graph(props: GraphProps): React.ReactElement {
     }
   }, [cy, currentElementSet, elementSet]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (ref.current && !cy) {
       cytoscape.use(cola);
       setCy(cytoscape({
@@ -102,7 +128,7 @@ export default function Graph(props: GraphProps): React.ReactElement {
     }
   }, [setCy, ref, cy]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (cy && onNodeMouseover) {
       cy.on('mouseover', 'node', (evt: EventObject) => {
 				const node = evt.target as NodeSingular;
@@ -111,7 +137,7 @@ export default function Graph(props: GraphProps): React.ReactElement {
     }
   }, [cy, onNodeMouseover]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (cy && onNodeMouseout) {
       cy.on('mouseout', 'node', (evt: EventObject) => {
 				const node = evt.target as NodeSingular;
@@ -120,7 +146,7 @@ export default function Graph(props: GraphProps): React.ReactElement {
     }
   }, [cy, onNodeMouseout]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (cy && onEdgeMouseover) {
       cy.on('mouseover', 'edge', (evt: EventObject) => {
 				const edge = evt.target as EdgeSingular;
@@ -129,7 +155,7 @@ export default function Graph(props: GraphProps): React.ReactElement {
     }
   }, [cy, onEdgeMouseover]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (cy && onEdgeMouseout) {
       cy.on('mouseout', 'edge', (evt: EventObject) => {
 				const edge = evt.target as EdgeSingular;
@@ -138,7 +164,7 @@ export default function Graph(props: GraphProps): React.ReactElement {
     }
   }, [cy, onEdgeMouseout]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (cy && onEdgeClick) {
       cy.on('mouseup', 'edge', (evt: EventObject) => {
 				const edge = evt.target as EdgeSingular;
@@ -147,13 +173,13 @@ export default function Graph(props: GraphProps): React.ReactElement {
     }
   }, [cy, onEdgeClick]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (cy && onNodeLoad) {
       cy.nodes().forEach((node) => onNodeLoad(node));
     }
   }, [cy, onNodeLoad]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (cy && onNodeClick) {
       let isDragging: boolean = false;
       cy.on('drag', 'node', () => { isDragging = true });
