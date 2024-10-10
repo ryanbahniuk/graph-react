@@ -1,5 +1,5 @@
 import React from 'react'
-import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties } from 'react';
 import cytoscape from 'cytoscape';
 import {
 	type Core,
@@ -69,12 +69,12 @@ export default function Graph(props: GraphProps): React.ReactElement {
     style,
   } = props;
 
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [cy, setCy] = useState<Core | null>(null);
-  const currentElementSet = useMemo(() => new Set(elements), [elements]);
-  const [elementSet, setElementSet] = useState<Set<GraphElement>>(() => new Set([]));
+  const ref = React.useRef<HTMLDivElement | null>(null);
+  const [cy, setCy] = React.useState<Core | null>(null);
+  const currentElementSet = React.useMemo(() => new Set(elements), [elements]);
+  const [elementSet, setElementSet] = React.useState<Set<GraphElement>>(() => new Set([]));
 
-  useEffect(() => {
+  React.useEffect(() => {
     const diff = setDifference(currentElementSet, elementSet);
     if (cy && diff.size > 0) {
       addElements(cy, diff);
@@ -82,7 +82,7 @@ export default function Graph(props: GraphProps): React.ReactElement {
     }
   }, [cy, currentElementSet, elementSet]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (ref.current && !cy) {
       cytoscape.use(cola);
       setCy(cytoscape({
@@ -102,7 +102,7 @@ export default function Graph(props: GraphProps): React.ReactElement {
     }
   }, [setCy, ref, cy]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (cy && onNodeMouseover) {
       cy.on('mouseover', 'node', (evt: EventObject) => {
 				const node = evt.target as NodeSingular;
@@ -111,7 +111,7 @@ export default function Graph(props: GraphProps): React.ReactElement {
     }
   }, [cy, onNodeMouseover]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (cy && onNodeMouseout) {
       cy.on('mouseout', 'node', (evt: EventObject) => {
 				const node = evt.target as NodeSingular;
@@ -120,7 +120,7 @@ export default function Graph(props: GraphProps): React.ReactElement {
     }
   }, [cy, onNodeMouseout]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (cy && onEdgeMouseover) {
       cy.on('mouseover', 'edge', (evt: EventObject) => {
 				const edge = evt.target as EdgeSingular;
@@ -129,7 +129,7 @@ export default function Graph(props: GraphProps): React.ReactElement {
     }
   }, [cy, onEdgeMouseover]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (cy && onEdgeMouseout) {
       cy.on('mouseout', 'edge', (evt: EventObject) => {
 				const edge = evt.target as EdgeSingular;
@@ -138,7 +138,7 @@ export default function Graph(props: GraphProps): React.ReactElement {
     }
   }, [cy, onEdgeMouseout]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (cy && onEdgeClick) {
       cy.on('mouseup', 'edge', (evt: EventObject) => {
 				const edge = evt.target as EdgeSingular;
@@ -147,13 +147,13 @@ export default function Graph(props: GraphProps): React.ReactElement {
     }
   }, [cy, onEdgeClick]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (cy && onNodeLoad) {
       cy.nodes().forEach((node) => onNodeLoad(node));
     }
   }, [cy, onNodeLoad]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (cy && onNodeClick) {
       let isDragging: boolean = false;
       cy.on('drag', 'node', () => { isDragging = true });

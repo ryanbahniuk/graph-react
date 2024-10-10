@@ -14,7 +14,10 @@ module.exports = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
   },
-  output: {
+	externals: {
+		react: 'React'
+	},
+	output: {
 		library: {
 			name: 'GraphComponent',
 			type: 'umd',
