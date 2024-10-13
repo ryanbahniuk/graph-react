@@ -7,45 +7,34 @@ import {
 	type EdgeSingular,
 	type NodeSingular
 } from 'cytoscape';
-import cola from 'cytoscape-cola';
+import cose from 'cytoscape-cose-bilkent';
 import GraphNode from '../models/GraphNode';
 import GraphEdge from '../models/GraphEdge';
 import { setDifference } from '../utilities/set';
 
 type GraphElement = GraphNode | GraphEdge;
 
-const initialLayoutOptions = {
-	name: 'cola',
-	nodeSpacing: 30,
-	refresh: 1,
-	infinite: false,
-	animate: true,
-	maxSimulationTime: 5000,
-}
-
-const layoutOptions = {
-	name: 'cola',
-	nodeSpacing: 30,
-	refresh: 1,
-	infinite: false,
-	edgeLength: (edge: EdgeSingular) => {
-		return edge.data('weight') * 50;
-	},
-	randomize: false,
-	animate: true,
-	maxSimulationTime: 5000,
+const coseLayout = {
+	name: 'cose-bilkent',
+  idealEdgeLength: 150,
+  nodeRepulsion: 15000,
+  gravity: 0.2,
+  numIter: 5000,
+  edgeElasticity: 0.3,
+  randomize: true,
+  initialEnergyOnIncremental: 0.3,
+  animate: 'end',
+  animationDuration: 1000,
+  animationEasing: 'ease-in-out',
 };
 
 const addElements = (cy: Core, newElements: Set<GraphElement>) => {
   cy.nodes().lock();
   const toAdd = [...newElements].map((el) => el.toElement());
   cy.add(toAdd);
-  const initialLayout = cy.layout(initialLayoutOptions).run();
-	setTimeout(() => {
-		initialLayout.stop();
-		cy.layout(layoutOptions).run();
-		cy.nodes().unlock();
-	}, 3000);
+  cy.layout({ name: 'grid' }).run();
+  cy.layout(coseLayout).run();
+	cy.nodes().unlock();
 };
 
 const stylesheet = [
@@ -110,7 +99,7 @@ export default function Graph(props: GraphProps): React.ReactElement {
 
   useEffect(() => {
     if (ref.current && !cy) {
-      cytoscape.use(cola);
+      cytoscape.use(cose);
       setCy(cytoscape({
         container: ref.current,
         zoomingEnabled: true,

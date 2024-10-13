@@ -1,6 +1,8 @@
 const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
+  mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
   entry: './src/index.ts',
   module: {
     rules: [
@@ -17,6 +19,18 @@ module.exports = {
 	externals: {
 		react: 'React'
 	},
+  devServer: {
+    static: {
+      directory: path.join(__dirname, 'public'),
+    },
+    hot: true,
+    open: true,
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: './public/index.html',
+    }),
+  ],
 	output: {
 		library: {
 			name: 'GraphComponent',
