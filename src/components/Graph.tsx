@@ -5,22 +5,21 @@ import {
 	type Core,
 	type EventObject,
 	type EdgeSingular,
-	type NodeSingular
+	type NodeSingular,
 } from 'cytoscape';
 import cose from 'cytoscape-cose-bilkent';
+import { type CoseBilkentLayoutOptions } from 'cytoscape-cose-bilkent';
 import GraphNode from '../models/GraphNode';
 import GraphEdge from '../models/GraphEdge';
 import { setDifference } from '../utilities/set';
 
 type GraphElement = GraphNode | GraphEdge;
+type Clusters = { [key: string]: NodeSingular[] };
 
-const coseLayout = {
+const baseCoseLayoutOptions: CoseBilkentLayoutOptions = {
 	name: 'cose-bilkent',
-  idealEdgeLength: 150,
-  nodeRepulsion: 15000,
   gravity: 0.2,
   numIter: 5000,
-  edgeElasticity: 0.3,
   randomize: true,
   initialEnergyOnIncremental: 0.3,
   animate: 'end',
@@ -28,12 +27,56 @@ const coseLayout = {
   animationEasing: 'ease-in-out',
 };
 
+const baseNodeRepulsion = 15000;
+const baseIdealEdgeLength = 200;
+const baseEdgeElasticity = 100;
+
+const coseLayoutOptions = (cy: Core): CoseBilkentLayoutOptions => {
+  const clusterCount = numClusters(cy);
+
+  return {
+    ...baseCoseLayoutOptions,
+    nodeRepulsion: baseNodeRepulsion * clusterCount,
+    idealEdgeLength: baseIdealEdgeLength * 1.25,
+    edgeElasticity: baseEdgeElasticity * 0.5,
+  };
+};
+
+const nodeDegree = (node: NodeSingular): number => node.degree(true) + node.degree(false);
+
+const numClusters = (cy: Core) => {
+  const totalConnections = cy.nodes().reduce((sum, node) => sum + nodeDegree(node), 0);
+  const averageConnections = totalConnections / cy.nodes().size();
+
+  return cy.nodes().filter((node: NodeSingular): boolean => {
+    const edgeCount = node.connectedEdges().length;
+    return edgeCount > averageConnections;
+  }).length;
+};
+
+const buildClusters = (cy: Core): Clusters => {
+  const totalConnections = cy.nodes().reduce((sum, node) => sum + nodeDegree(node), 0);
+  const averageConnections = totalConnections / cy.nodes().size();
+  const clusters: Clusters = {}
+
+  cy.nodes().forEach((node: NodeSingular) =>{
+    const edgeCount = node.connectedEdges().length;
+    if (edgeCount > averageConnections) {
+      const id = node.data('id');
+      clusters[id] ||= [];
+      clusters[id].push(node);
+    }
+  });
+
+  return clusters;
+}
+
 const addElements = (cy: Core, newElements: Set<GraphElement>) => {
   cy.nodes().lock();
   const toAdd = [...newElements].map((el) => el.toElement());
   cy.add(toAdd);
   cy.layout({ name: 'grid' }).run();
-  cy.layout(coseLayout).run();
+  cy.layout(coseLayoutOptions(cy)).run();
 	cy.nodes().unlock();
 };
 
@@ -169,13 +212,16 @@ export default function Graph(props: GraphProps): React.ReactElement {
   }, [cy, onNodeLoad]);
 
   useEffect(() => {
-    if (cy && onNodeClick) {
+    if (cy && true) {
       let isDragging: boolean = false;
       cy.on('drag', 'node', () => { isDragging = true });
       cy.on('mouseup', 'node', function(evt: EventObject) {
         if (!isDragging) {
           const node = evt.target as NodeSingular;
-          onNodeClick(node);
+          //console.log('node data', node.data(), 'edgeCount', node.connectedEdges().length);
+          const neighborhood = node.neighborhood().add(node);
+          neighborhood.style('background-color', 'blue');
+          //onNodeClick(node);
         }
 
         isDragging = false;
