@@ -11,6 +11,7 @@ import cose from 'cytoscape-cose-bilkent';
 import { type CoseBilkentLayoutOptions } from 'cytoscape-cose-bilkent';
 import GraphNode from '../models/GraphNode';
 import GraphEdge from '../models/GraphEdge';
+import { primaryConnections, secondaryConnections } from '../helpers/nodeHelpers';
 import { setDifference } from '../utilities/set';
 
 type GraphElement = GraphNode | GraphEdge;
@@ -219,8 +220,9 @@ export default function Graph(props: GraphProps): React.ReactElement {
         if (!isDragging) {
           const node = evt.target as NodeSingular;
           //console.log('node data', node.data(), 'edgeCount', node.connectedEdges().length);
-          const neighborhood = node.neighborhood().add(node);
-          neighborhood.style('background-color', 'blue');
+          node.style('background-color', 'tomato');
+          primaryConnections(node).forEach((n: NodeSingular) => n.style('background-color', 'blue'));
+          secondaryConnections(node).forEach((n: NodeSingular) => n.style('background-color', 'green'));
           //onNodeClick(node);
         }
 
