@@ -11,7 +11,6 @@ import cose from 'cytoscape-cose-bilkent';
 import { type CoseBilkentLayoutOptions } from 'cytoscape-cose-bilkent';
 import GraphNode from '../models/GraphNode';
 import GraphEdge from '../models/GraphEdge';
-import { primaryConnections, secondaryConnections } from '../helpers/nodeHelpers';
 import { setDifference } from '../utilities/set';
 
 type GraphElement = GraphNode | GraphEdge;

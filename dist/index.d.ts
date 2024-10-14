@@ -7,5 +7,9 @@ declare const result: {
     GraphEdge: typeof GraphEdge;
     GraphGroup: typeof GraphGroup;
     Graph: typeof Graph;
+    nodeHelpers: {
+        primaryConnections: (node: import("cytoscape").NodeSingular) => import("cytoscape").NodeSingular[];
+        secondaryConnections: (node: import("cytoscape").NodeSingular) => import("cytoscape").NodeSingular[];
+    };
 };
 export default result;
