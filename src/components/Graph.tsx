@@ -86,7 +86,7 @@ const stylesheet = [
     selector: 'node',
     style: {
       'background-color': '#0d4029',
-      'label': 'data(id)',
+      'label': 'data(label)',
       'font-size': '12px',
     }
   },
@@ -99,6 +99,15 @@ const stylesheet = [
       'target-arrow-color': '#ccc',
       'target-arrow-shape': 'triangle',
       'arrow-scale': 0.75,
+    }
+  },
+  {
+    selector: ':parent',
+    style: {
+      'background-opacity': 0.333,
+      'background-color': '#fafafa',
+      'border-color': '#2B65EC',
+      'border-width': 2
     }
   }
 ];

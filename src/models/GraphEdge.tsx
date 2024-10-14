@@ -16,7 +16,7 @@ class GraphEdge {
     this.weight = weight;
   }
 
-  toJSON() {
+  toJSON(): string {
     return JSON.stringify(this.toElement())
   }
 
