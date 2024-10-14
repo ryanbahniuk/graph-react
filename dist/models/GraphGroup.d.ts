@@ -1,15 +1,13 @@
 import { type ElementDefinition } from 'cytoscape';
-declare class GraphNode {
+declare class GraphGroup {
     id: symbol;
     elementId: string;
     label: string;
-    parent: string | undefined;
-    constructor({ id, label, parent }: {
+    constructor({ id, label }: {
         id: string;
         label?: string;
-        parent?: string;
     });
     toJSON(): string;
     toElement(): ElementDefinition;
 }
-export default GraphNode;
+export default GraphGroup;
