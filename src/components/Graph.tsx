@@ -222,17 +222,13 @@ export default function Graph(props: GraphProps): React.ReactElement {
   }, [cy, onNodeLoad]);
 
   useEffect(() => {
-    if (cy && true) {
+    if (cy && onNodeClick) {
       let isDragging: boolean = false;
       cy.on('drag', 'node', () => { isDragging = true });
       cy.on('mouseup', 'node', function(evt: EventObject) {
         if (!isDragging) {
           const node = evt.target as NodeSingular;
-          //console.log('node data', node.data(), 'edgeCount', node.connectedEdges().length);
-          node.style('background-color', 'tomato');
-          primaryConnections(node).forEach((n: NodeSingular) => n.style('background-color', 'blue'));
-          secondaryConnections(node).forEach((n: NodeSingular) => n.style('background-color', 'green'));
-          //onNodeClick(node);
+          onNodeClick(node);
         }
 
         isDragging = false;
