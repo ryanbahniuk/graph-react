@@ -8,6 +8,7 @@ declare class GraphGroup {
         label?: string;
     });
     toJSON(): string;
+    isNode(): boolean;
     toElement(): ElementDefinition;
 }
 export default GraphGroup;

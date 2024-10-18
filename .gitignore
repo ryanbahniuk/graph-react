@@ -1,1 +1,4 @@
 node_modules
+public/babel.min.js
+public/react-dom.development.js
+public/react.development.js

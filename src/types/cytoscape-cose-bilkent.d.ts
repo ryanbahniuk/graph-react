@@ -12,6 +12,7 @@ declare module 'cytoscape-cose-bilkent' {
 
   export interface CoseBilkentLayoutOptions {
     name: 'cose-bilkent';
+    clusters?: string[][];
     refresh?: number;
     randomize?: boolean;
     componentSpacing?: number;
@@ -22,6 +23,7 @@ declare module 'cytoscape-cose-bilkent' {
     initialEnergyOnIncremental?: number;
     nestingFactor?: number;
     gravity?: number;
+    gravityRange?: number;
     numIter?: number;
     initialTemp?: number;
     coolingFactor?: number;

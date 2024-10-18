@@ -4,7 +4,11 @@
   "private": true,
   "scripts": {
     "build": "NODE_ENV=production webpack",
-    "dev": "NODE_ENV=development webpack serve --open",
+    "cp-babel": "cp ./node_modules/babel-standalone/babel.min.js ./public/",
+    "cp-react": "cp ./node_modules/react/umd/react.development.js ./public/",
+    "cp-react-dom": "cp ./node_modules/react-dom/umd/react-dom.development.js ./public/",
+    "cp-dev-files": "yarn cp-babel && yarn cp-react && yarn cp-react-dom",
+    "dev": "yarn cp-dev-files && NODE_ENV=development webpack serve --open",
     "lint": "eslint"
   },
   "dependencies": {
@@ -20,6 +24,8 @@
     "@types/react-dom": "^18",
     "@typescript-eslint/eslint-plugin": "^8.8.0",
     "@typescript-eslint/parser": "^8.8.0",
+    "babel": "^6.23.0",
+    "babel-standalone": "^6.26.0",
     "chokidar-cli": "^3.0.0",
     "csv-parse": "^5.5.6",
     "csv-parser": "^3.0.0",

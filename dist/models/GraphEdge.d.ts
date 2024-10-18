@@ -11,6 +11,7 @@ declare class GraphEdge {
         weight: number;
     });
     toJSON(): string;
+    isNode(): boolean;
     toElement(): ElementDefinition;
 }
 export default GraphEdge;

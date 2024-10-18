@@ -10,6 +10,7 @@ declare class GraphNode {
         parent?: string;
     });
     toJSON(): string;
+    isNode(): boolean;
     toElement(): ElementDefinition;
 }
 export default GraphNode;

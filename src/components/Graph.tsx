@@ -11,14 +11,18 @@ import cose from 'cytoscape-cose-bilkent';
 import { type CoseBilkentLayoutOptions } from 'cytoscape-cose-bilkent';
 import GraphNode from '../models/GraphNode';
 import GraphEdge from '../models/GraphEdge';
+import GraphGroup from '../models/GraphGroup';
+import { averageEdgeCount } from '../helpers/graphHelpers';
+import { buildSimpleClusters } from '../helpers/clusterHelpers';
 import { setDifference } from '../utilities/set';
 
 type GraphElement = GraphNode | GraphEdge;
-type Clusters = { [key: string]: NodeSingular[] };
 
 const baseCoseLayoutOptions: CoseBilkentLayoutOptions = {
 	name: 'cose-bilkent',
+  nestingFactor: 0.1,
   gravity: 0.2,
+	gravityRange: 0.38,
   numIter: 5000,
   randomize: true,
   initialEnergyOnIncremental: 0.3,
@@ -28,55 +32,42 @@ const baseCoseLayoutOptions: CoseBilkentLayoutOptions = {
 };
 
 const baseNodeRepulsion = 15000;
-const baseIdealEdgeLength = 200;
+const baseIdealEdgeLength = 150;
 const baseEdgeElasticity = 100;
 
-const coseLayoutOptions = (cy: Core): CoseBilkentLayoutOptions => {
-  const clusterCount = numClusters(cy);
-
+const coseLayoutOptions = (cy: Core, clusters: string[][]): CoseBilkentLayoutOptions => {
   return {
     ...baseCoseLayoutOptions,
-    nodeRepulsion: baseNodeRepulsion * clusterCount,
-    idealEdgeLength: baseIdealEdgeLength * 1.25,
+    clusters,
+    nodeRepulsion: baseNodeRepulsion * clusters.length,
+    idealEdgeLength: baseIdealEdgeLength * 1.5,
     edgeElasticity: baseEdgeElasticity * 0.5,
   };
 };
 
-const nodeDegree = (node: NodeSingular): number => node.degree(true) + node.degree(false);
-
-const numClusters = (cy: Core) => {
-  const totalConnections = cy.nodes().reduce((sum, node) => sum + nodeDegree(node), 0);
-  const averageConnections = totalConnections / cy.nodes().size();
-
-  return cy.nodes().filter((node: NodeSingular): boolean => {
-    const edgeCount = node.connectedEdges().length;
-    return edgeCount > averageConnections;
-  }).length;
-};
-
-const buildClusters = (cy: Core): Clusters => {
-  const totalConnections = cy.nodes().reduce((sum, node) => sum + nodeDegree(node), 0);
-  const averageConnections = totalConnections / cy.nodes().size();
-  const clusters: Clusters = {}
-
-  cy.nodes().forEach((node: NodeSingular) =>{
-    const edgeCount = node.connectedEdges().length;
-    if (edgeCount > averageConnections) {
-      const id = node.data('id');
-      clusters[id] ||= [];
-      clusters[id].push(node);
-    }
-  });
-
-  return clusters;
-}
-
-const addElements = (cy: Core, newElements: Set<GraphElement>) => {
+const addElements = (cy: Core, newElements: Set<GraphElement>, autoGroup?: boolean) => {
   cy.nodes().lock();
   const toAdd = [...newElements].map((el) => el.toElement());
   cy.add(toAdd);
+  
+  const average = averageEdgeCount(cy);
+  const clusters = buildSimpleClusters(cy, average);
+
+  if (autoGroup) {
+    const relevantClusters = clusters.filter((clusterArr: string[]) => clusterArr.length > average);
+    const groups: GraphGroup[] = relevantClusters.map((_arr, index) => new GraphGroup({ id: `group_${index}` }),);
+    cy.add(groups.map((g) => g.toElement()));
+    relevantClusters.forEach((clusterArr: string[], index: number) => {
+      clusterArr.forEach((id: string) => {
+        const node = cy.getElementById(id);
+        const groupId = groups[index].elementId;
+        node.move({ parent: groupId });
+      });
+    });
+  }
+
   cy.layout({ name: 'grid' }).run();
-  cy.layout(coseLayoutOptions(cy)).run();
+  cy.layout(coseLayoutOptions(cy, clusters)).run();
 	cy.nodes().unlock();
 };
 
@@ -121,10 +112,12 @@ interface GraphProps {
   onEdgeMouseover?: (edge: EdgeSingular) => void;
   onEdgeMouseout?: (edge: EdgeSingular) => void;
   style?: CSSProperties;
+  autoGroup?: boolean;
 }
 
 export default function Graph(props: GraphProps): React.ReactElement {
   const {
+    autoGroup,
     elements,
     onNodeLoad,
     onNodeMouseover,
@@ -144,7 +137,7 @@ export default function Graph(props: GraphProps): React.ReactElement {
   useEffect(() => {
     const diff = setDifference(currentElementSet, elementSet);
     if (cy && diff.size > 0) {
-      addElements(cy, diff);
+      addElements(cy, diff, autoGroup);
       setElementSet(new Set([...elementSet, ...diff]));
     }
   }, [cy, currentElementSet, elementSet]);

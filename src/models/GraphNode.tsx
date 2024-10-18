@@ -17,6 +17,10 @@ class GraphNode {
     return JSON.stringify(this.toElement())
   }
 
+  isNode(): boolean {
+    return true;
+  }
+
   toElement(): ElementDefinition {
     return {
       data: {

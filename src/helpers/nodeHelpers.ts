@@ -16,4 +16,4 @@ const secondaryConnections = (node: NodeSingular): NodeSingular[] => {
 export {
   primaryConnections,
   secondaryConnections,
-}
+};

@@ -14,6 +14,7 @@ interface GraphProps {
     onEdgeMouseover?: (edge: EdgeSingular) => void;
     onEdgeMouseout?: (edge: EdgeSingular) => void;
     style?: CSSProperties;
+    autoGroup?: boolean;
 }
 export default function Graph(props: GraphProps): React.ReactElement;
 export {};

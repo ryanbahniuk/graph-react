@@ -15,6 +15,10 @@ class GraphGroup {
     return JSON.stringify(this.toElement())
   }
 
+  isNode(): boolean {
+    return false;
+  }
+
   toElement(): ElementDefinition {
     return {
       data: {

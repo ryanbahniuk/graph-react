@@ -1,15 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Testing</title><script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script><script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script><script crossorigin src="https://unpkg.com/babel-standalone@6/babel.min.js"></script><style>@import url('https://rsms.me/inter/inter.css');
-			html { font-family: 'Inter', sans-serif; }
-
-			@supports (font-variation-settings: normal) {
-				html { font-family: 'Inter var', sans-serif; }
-			}
-
-			* {
-				font-family: 'Inter', sans-serif;
-			}
-
-			body {
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Testing</title><script crossorigin src="./react.development.js"></script><script crossorigin src="./react-dom.development.js"></script><script crossorigin src="./babel.min.js"></script><style>body {
 				margin: 0;
 			}
 
@@ -26,7 +15,7 @@
         return (
           <div>
             {
-              elements.length > 0 && <GraphComponent.Graph elements={window.elements} style={style} />
+              elements.length > 0 && <GraphComponent.Graph elements={window.elements} style={style} autoGroup />
             }
           </div>
         )
