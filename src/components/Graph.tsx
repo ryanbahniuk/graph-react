@@ -1,7 +1,8 @@
-import React, { useMemo, useRef, useState, useEffect } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { type CSSProperties } from 'react';
 import cytoscape from 'cytoscape';
 import {
+  type CollectionReturnValue,
 	type Core,
 	type EventObject,
 	type EdgeSingular,
@@ -12,6 +13,7 @@ import { type CoseBilkentLayoutOptions } from 'cytoscape-cose-bilkent';
 import GraphNode from '../models/GraphNode';
 import GraphEdge from '../models/GraphEdge';
 import GraphGroup from '../models/GraphGroup';
+import useGraph from '../hooks/useGraph';
 import { averageEdgeCount } from '../helpers/graphHelpers';
 import { buildSimpleClusters } from '../helpers/clusterHelpers';
 import { setDifference } from '../utilities/set';
@@ -45,11 +47,7 @@ const coseLayoutOptions = (cy: Core, clusters: string[][]): CoseBilkentLayoutOpt
   };
 };
 
-const addElements = (cy: Core, newElements: Set<GraphElement>, autoGroup?: boolean) => {
-  cy.nodes().lock();
-  const toAdd = [...newElements].map((el) => el.toElement());
-  cy.add(toAdd);
-  
+const runLayout = (collection: CollectionReturnValue, cy: Core, autoGroup?: boolean) => {
   const average = averageEdgeCount(cy);
   const clusters = buildSimpleClusters(cy, average);
 
@@ -66,8 +64,15 @@ const addElements = (cy: Core, newElements: Set<GraphElement>, autoGroup?: boole
     });
   }
 
-  cy.layout({ name: 'grid' }).run();
-  cy.layout(coseLayoutOptions(cy, clusters)).run();
+  const elementsToLayout = collection.union(collection.connectedNodes());
+  elementsToLayout.layout(coseLayoutOptions(cy, clusters)).run();
+}
+
+const addElements = (cy: Core, newElements: Set<GraphElement>) => {
+  cy.nodes().lock();
+  const toAdd = [...newElements].map((el) => el.toElement());
+  const added = cy.add(toAdd);
+  runLayout(added, cy);
 	cy.nodes().unlock();
 };
 
@@ -103,7 +108,6 @@ const stylesheet = [
 ];
 
 interface GraphProps {
-  elements: GraphElement[];
   onNodeLoad?: (node: NodeSingular) => void;
   onNodeMouseover?: (node: NodeSingular) => void;
   onNodeMouseout?: (node: NodeSingular) => void;
@@ -117,8 +121,7 @@ interface GraphProps {
 
 export default function Graph(props: GraphProps): React.ReactElement {
   const {
-    autoGroup,
-    elements,
+    //autoGroup,
     onNodeLoad,
     onNodeMouseover,
     onNodeMouseout,
@@ -129,18 +132,46 @@ export default function Graph(props: GraphProps): React.ReactElement {
     style,
   } = props;
 
+  const {
+    nodes: graphContextNodes,
+    edges: graphContextEdges,
+  } = useGraph();
   const ref = useRef<HTMLDivElement | null>(null);
   const [cy, setCy] = useState<Core | null>(null);
-  const currentElementSet = useMemo(() => new Set(elements), [elements]);
-  const [elementSet, setElementSet] = useState<Set<GraphElement>>(() => new Set([]));
+  const [nodes, setNodes] = useState<Set<GraphNode>>(() => new Set([]));
+  const [edges, setEdges] = useState<Set<GraphEdge>>(() => new Set([]));
+
+  const nodeDiff = useCallback(() => {
+    const contextNodes = new Set(Object.values(graphContextNodes));
+    return setDifference(contextNodes, nodes);
+  }, [graphContextNodes, nodes]);
+
+  const edgeDiff = useCallback(() => {
+    const relevantEdges = Object.values(graphContextEdges).filter((edge) => {
+      return graphContextNodes[edge.sourceId] && graphContextNodes[edge.targetId]
+    });
+    return setDifference(new Set(relevantEdges), edges);
+  }, [graphContextEdges, graphContextNodes, edges]);
 
   useEffect(() => {
-    const diff = setDifference(currentElementSet, elementSet);
-    if (cy && diff.size > 0) {
-      addElements(cy, diff, autoGroup);
-      setElementSet(new Set([...elementSet, ...diff]));
+    if (cy) {
+      let diff = new Set<GraphElement>([]);
+      const nDiff = nodeDiff();
+      const eDiff = edgeDiff();
+
+      if (eDiff.size > 0) {
+        diff = new Set([...diff, ...eDiff]);
+        setEdges(new Set([...edges, ...eDiff]));
+      }
+
+      if (nDiff.size > 0) {
+        diff = new Set([...diff, ...nDiff]);
+        setNodes(new Set([...nodes, ...nDiff]));
+      }
+
+      addElements(cy, diff);
     }
-  }, [cy, currentElementSet, elementSet]);
+  }, [cy, graphContextEdges, graphContextNodes]);
 
   useEffect(() => {
     if (ref.current && !cy) {

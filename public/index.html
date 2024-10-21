@@ -22,23 +22,84 @@
 		<div id="react"></div>
 
 		<script defer src="./nodes.js"></script>
+		<script defer src="./edges.js"></script>
 		<script defer type="text/babel">
+      const parentStyle = {
+        "display": "flex",
+      };
+			const sidebarStyle = {
+				"width": "200px",
+			};
 			const style = {
 				"boxSizing": "border-box",
-				"width": "100%",
+				"width": "1000px",
 				"height": "800px",
+        "border": "1px solid grey",
 			};
+
+      const AddNodeForm = () => {
+        const graphContext = GraphComponent.useGraph();
+
+        const addNode = (e) => {
+          e.preventDefault();
+          const form = e.target;
+          const textInput = form.querySelector("#node-id");
+          const nodeId = textInput.value;
+          const node = window.nodes.find((node) => node.elementId === nodeId);
+          graphContext.addNode(node);
+        }
+
+        return (
+          <form onSubmit={addNode}>
+            <input type="text" id="node-id" placeholder="Node ID"/>
+            <button>Add Node</button>
+          </form>
+        );
+      };
+
+      const AddNodesButton = () => {
+        const graphContext = GraphComponent.useGraph();
+
+        const addNodes = () => {
+          graphContext.addNodes(window.nodes);
+        }
+
+        return (
+          <button onClick={addNodes}>Add All Nodes</button>
+        );
+      };
+
+      const AddEdgesButton = () => {
+        const graphContext = GraphComponent.useGraph();
+
+        const addEdges = () => {
+          graphContext.addEdges(window.edges);
+        }
+
+        return (
+          <button onClick={addEdges}>Add All Edges</button>
+        );
+      };
 
       function App() {
         return (
-          <div>
-            {
-              elements.length > 0 && <GraphComponent.Graph elements={window.elements} style={style} autoGroup />
-            }
-          </div>
+          <GraphComponent.GraphProvider>
+            <div style={parentStyle}>
+              <div style={sidebarStyle}>
+                <AddNodesButton />
+                <AddEdgesButton />
+                <AddNodeForm />
+              </div>
+              <div>
+                <GraphComponent.Graph style={style} />
+              </div>
+            </div>
+          </GraphComponent.GraphProvider>
         )
       }
-      ReactDOM.render(<App />, document.getElementById("react"));
+      const container = document.getElementById('react');
+      const root = ReactDOM.createRoot(container);
+      root.render(<App />);
 		</script>
 	</body>
 </html>
