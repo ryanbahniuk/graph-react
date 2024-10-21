@@ -18,7 +18,7 @@ import { averageEdgeCount } from '../helpers/graphHelpers';
 import { buildSimpleClusters } from '../helpers/clusterHelpers';
 import { setDifference } from '../utilities/set';
 
-type GraphElement = GraphNode | GraphEdge;
+type GraphElement = GraphNode | GraphEdge | GraphGroup;
 
 const baseCoseLayoutOptions: CoseBilkentLayoutOptions = {
 	name: 'cose-bilkent',
@@ -67,6 +67,15 @@ const runLayout = (collection: CollectionReturnValue, cy: Core, autoGroup?: bool
   const elementsToLayout = collection.union(collection.connectedNodes());
   elementsToLayout.layout(coseLayoutOptions(cy, clusters)).run();
 }
+
+const updateNodes = (cy: Core, groups: Set<GraphGroup>) => {
+  groups.forEach((group) => {
+    group.children.forEach((graphNode) => {
+      const node = cy.getElementById(graphNode.elementId);
+      node.move({ parent: group.elementId });
+    });
+  });
+};
 
 const addElements = (cy: Core, newElements: Set<GraphElement>) => {
   cy.nodes().lock();
@@ -135,11 +144,18 @@ export default function Graph(props: GraphProps): React.ReactElement {
   const {
     nodes: graphContextNodes,
     edges: graphContextEdges,
+    groups: graphContextGroups,
   } = useGraph();
   const ref = useRef<HTMLDivElement | null>(null);
   const [cy, setCy] = useState<Core | null>(null);
   const [nodes, setNodes] = useState<Set<GraphNode>>(() => new Set([]));
   const [edges, setEdges] = useState<Set<GraphEdge>>(() => new Set([]));
+  const [groups, setGroups] = useState<Set<GraphGroup>>(() => new Set([]));
+
+  const groupDiff = useCallback(() => {
+    const contextGroups = new Set(Object.values(graphContextGroups));
+    return setDifference(contextGroups, groups);
+  }, [graphContextGroups, groups]);
 
   const nodeDiff = useCallback(() => {
     const contextNodes = new Set(Object.values(graphContextNodes));
@@ -172,6 +188,17 @@ export default function Graph(props: GraphProps): React.ReactElement {
       addElements(cy, diff);
     }
   }, [cy, graphContextEdges, graphContextNodes]);
+
+  useEffect(() => {
+    if (cy) {
+      const diff = groupDiff();
+      const newGroups = new Set([...groups, ...diff]);
+
+      setGroups(newGroups);
+      addElements(cy, diff);
+      updateNodes(cy, newGroups);
+    }
+  }, [cy, graphContextGroups]);
 
   useEffect(() => {
     if (ref.current && !cy) {

@@ -57,6 +57,26 @@
         );
       };
 
+      const AddGroupForm = () => {
+        const graphContext = GraphComponent.useGraph();
+
+        const submit = (e) => {
+          e.preventDefault();
+          const form = e.target;
+          const groupId = form.querySelector("#group-form-group-id").value;
+          const nodeId = form.querySelector("#group-form-node-id").value;
+          graphContext.groupNodes(groupId, [nodeId]);
+        }
+
+        return (
+          <form onSubmit={submit}>
+            <input type="text" id="group-form-group-id" placeholder="Group ID"/>
+            <input type="text" id="group-form-node-id" placeholder="Node ID"/>
+            <button>Add Group</button>
+          </form>
+        );
+      };
+
       const AddNodesButton = () => {
         const graphContext = GraphComponent.useGraph();
 
@@ -89,6 +109,7 @@
                 <AddNodesButton />
                 <AddEdgesButton />
                 <AddNodeForm />
+                <AddGroupForm />
               </div>
               <div>
                 <GraphComponent.Graph style={style} />

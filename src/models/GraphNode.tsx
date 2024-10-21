@@ -21,6 +21,14 @@ class GraphNode {
     return true;
   }
 
+  addParent(id: string): void {
+    this.parent = id;
+  }
+
+  removeParent(): void {
+    this.parent = undefined;
+  }
+
   toElement(): ElementDefinition {
     return {
       data: {

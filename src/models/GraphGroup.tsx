@@ -1,14 +1,17 @@
 import { type ElementDefinition } from 'cytoscape';
+import GraphNode from './GraphNode';
 
 class GraphGroup {
   id: symbol;
   elementId: string;
   label: string;
+  children: Set<GraphNode>;
 
-  constructor({ id, label }: { id: string, label?: string }) {
+  constructor({ id, label, children }: { id: string, label?: string, children?: Set<GraphNode> }) {
     this.id = Symbol.for(id);
     this.label = label || id;
     this.elementId = id;
+    this.children = children || new Set([]);
   }
 
   toJSON(): string {
@@ -17,6 +20,11 @@ class GraphGroup {
 
   isNode(): boolean {
     return false;
+  }
+
+  addChild(node: GraphNode): void {
+    node.addParent(this.elementId);
+    this.children.add(node);
   }
 
   toElement(): ElementDefinition {
