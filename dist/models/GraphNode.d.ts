@@ -11,6 +11,8 @@ declare class GraphNode {
     });
     toJSON(): string;
     isNode(): boolean;
+    addParent(id: string): void;
+    removeParent(): void;
     toElement(): ElementDefinition;
 }
 export default GraphNode;

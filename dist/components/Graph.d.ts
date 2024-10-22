@@ -1,11 +1,7 @@
 import React from 'react';
 import { type CSSProperties } from 'react';
 import { type EdgeSingular, type NodeSingular } from 'cytoscape';
-import GraphNode from '../models/GraphNode';
-import GraphEdge from '../models/GraphEdge';
-type GraphElement = GraphNode | GraphEdge;
 interface GraphProps {
-    elements: GraphElement[];
     onNodeLoad?: (node: NodeSingular) => void;
     onNodeMouseover?: (node: NodeSingular) => void;
     onNodeMouseout?: (node: NodeSingular) => void;
