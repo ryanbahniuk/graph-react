@@ -53,7 +53,7 @@ const runLayout = (collection: CollectionReturnValue, cy: Core, autoGroup?: bool
 
   if (autoGroup) {
     const relevantClusters = clusters.filter((clusterArr: string[]) => clusterArr.length > average);
-    const groups: GraphGroup[] = relevantClusters.map((_arr, index) => new GraphGroup({ id: `group_${index}` }),);
+    const groups: GraphGroup[] = relevantClusters.map((_arr, index) => new GraphGroup({ id: `autogroup_${index}` }),);
     cy.add(groups.map((g) => g.toElement()));
     relevantClusters.forEach((clusterArr: string[], index: number) => {
       clusterArr.forEach((id: string) => {
