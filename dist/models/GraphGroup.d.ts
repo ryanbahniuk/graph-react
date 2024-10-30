@@ -1,18 +1,15 @@
 import { type ElementDefinition } from 'cytoscape';
-import GraphNode from './GraphNode';
+export type GroupID = string;
 declare class GraphGroup {
     id: symbol;
-    elementId: string;
+    elementId: GroupID;
     label: string;
-    children: Set<GraphNode>;
-    constructor({ id, label, children }: {
+    constructor({ id, label }: {
         id: string;
         label?: string;
-        children?: Set<GraphNode>;
     });
     toJSON(): string;
     isNode(): boolean;
-    addChild(node: GraphNode): void;
     toElement(): ElementDefinition;
 }
 export default GraphGroup;

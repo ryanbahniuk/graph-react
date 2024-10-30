@@ -1,18 +1,17 @@
 import { type ElementDefinition } from 'cytoscape';
+export type NodeID = string;
 declare class GraphNode {
     id: symbol;
-    elementId: string;
+    elementId: NodeID;
     label: string;
-    parent: string | undefined;
-    constructor({ id, label, parent }: {
+    nodeType: string;
+    constructor({ id, label, nodeType }: {
         id: string;
         label?: string;
-        parent?: string;
+        nodeType?: string;
     });
     toJSON(): string;
     isNode(): boolean;
-    addParent(id: string): void;
-    removeParent(): void;
     toElement(): ElementDefinition;
 }
 export default GraphNode;
