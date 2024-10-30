@@ -6,11 +6,13 @@ class GraphNode {
   id: symbol;
   elementId: NodeID;
   label: string;
+  nodeType: string;
 
-  constructor({ id, label }: { id: string, label?: string }) {
+  constructor({ id, label, nodeType }: { id: string, label?: string, nodeType?: string }) {
     this.id = Symbol.for(id);
     this.label = label || id;
     this.elementId = id;
+    this.nodeType = nodeType || 'Generic';
   }
 
   toJSON(): string {
