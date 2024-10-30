@@ -10,6 +10,7 @@ import {
 } from 'cytoscape';
 import cose from 'cytoscape-cose-bilkent';
 import { type CoseBilkentLayoutOptions } from 'cytoscape-cose-bilkent';
+import { type GroupChildrenMap } from './GraphProvider';
 import GraphNode from '../models/GraphNode';
 import GraphEdge from '../models/GraphEdge';
 import GraphGroup from '../models/GraphGroup';
@@ -68,13 +69,30 @@ const runLayout = (collection: CollectionReturnValue, cy: Core, autoGroup?: bool
   elementsToLayout.layout(coseLayoutOptions(cy, clusters)).run();
 }
 
-const updateNodes = (cy: Core, groups: Set<GraphGroup>) => {
-  groups.forEach((group) => {
-    group.children.forEach((graphNode) => {
-      const node = cy.getElementById(graphNode.elementId);
-      node.move({ parent: group.elementId });
-    });
+const updateGroupNodes = (cy: Core, nodes: Set<GraphNode>, graphContextGroupChildren: GroupChildrenMap) => {
+  nodes.forEach((graphNode) => {
+    const groupId = graphContextGroupChildren[graphNode.elementId];
+    const node = cy.getElementById(graphNode.elementId);
+
+    if (groupId) {
+      node.move({ parent: groupId });
+    } else {
+      node.move({ parent: null });
+    }
   });
+};
+
+const removeElements = (cy: Core, elementsToRemove: Set<GraphElement>) => {
+  cy.nodes().lock();
+  const toRemove = cy.collection();
+  [...elementsToRemove].forEach((graphEl) => {
+    const el = cy.getElementById(graphEl.elementId);
+    if (el) {
+      toRemove.merge(el);
+    }
+  });
+  cy.remove(toRemove);
+	cy.nodes().unlock();
 };
 
 const addElements = (cy: Core, newElements: Set<GraphElement>) => {
@@ -145,24 +163,27 @@ export default function Graph(props: GraphProps): React.ReactElement {
     nodes: graphContextNodes,
     edges: graphContextEdges,
     groups: graphContextGroups,
+    groupChildren: graphContextGroupChildren,
   } = useGraph();
   const ref = useRef<HTMLDivElement | null>(null);
   const [cy, setCy] = useState<Core | null>(null);
   const [nodes, setNodes] = useState<Set<GraphNode>>(() => new Set([]));
   const [edges, setEdges] = useState<Set<GraphEdge>>(() => new Set([]));
   const [groups, setGroups] = useState<Set<GraphGroup>>(() => new Set([]));
+  const contextNodes = new Set(Object.values(graphContextNodes));
+  const contextGroups = new Set(Object.values(graphContextGroups));
 
-  const groupDiff = useCallback(() => {
-    const contextGroups = new Set(Object.values(graphContextGroups));
-    return setDifference(contextGroups, groups);
-  }, [graphContextGroups, groups]);
-
-  const nodeDiff = useCallback(() => {
-    const contextNodes = new Set(Object.values(graphContextNodes));
-    return setDifference(contextNodes, nodes);
-  }, [graphContextNodes, nodes]);
-
-  const edgeDiff = useCallback(() => {
+  const positiveGroupDiff = useCallback(() => setDifference(contextGroups, groups), [contextGroups, groups]);
+  const negativeGroupDiff = useCallback(() => setDifference(groups, contextGroups), [contextGroups, groups]);
+  const positiveNodeDiff = useCallback(() => setDifference(contextNodes, nodes), [contextNodes, nodes]);
+  const negativeNodeDiff = useCallback(() => setDifference(nodes, contextNodes), [contextNodes, nodes]);
+  const negativeEdgeDiff = useCallback(() => {
+    const relevantEdges = Object.values(graphContextEdges).filter((edge) => {
+      return graphContextNodes[edge.sourceId] && graphContextNodes[edge.targetId]
+    });
+    return setDifference(edges, new Set(relevantEdges));
+  }, [graphContextEdges, graphContextNodes, edges]);
+  const positiveEdgeDiff = useCallback(() => {
     const relevantEdges = Object.values(graphContextEdges).filter((edge) => {
       return graphContextNodes[edge.sourceId] && graphContextNodes[edge.targetId]
     });
@@ -172,33 +193,60 @@ export default function Graph(props: GraphProps): React.ReactElement {
   useEffect(() => {
     if (cy) {
       let diff = new Set<GraphElement>([]);
-      const nDiff = nodeDiff();
-      const eDiff = edgeDiff();
+      const negativeNDiff = negativeNodeDiff();
+      const negativeEDiff = negativeEdgeDiff();
+      const negativeGDiff = negativeGroupDiff();
 
-      if (eDiff.size > 0) {
-        diff = new Set([...diff, ...eDiff]);
-        setEdges(new Set([...edges, ...eDiff]));
+      if (negativeEDiff.size > 0) {
+        diff = new Set([...diff, ...negativeEDiff]);
+        setEdges(new Set([...edges].filter(element => !negativeEDiff.has(element))));
       }
 
-      if (nDiff.size > 0) {
-        diff = new Set([...diff, ...nDiff]);
-        setNodes(new Set([...nodes, ...nDiff]));
+      if (negativeNDiff.size > 0) {
+        diff = new Set([...diff, ...negativeNDiff]);
+        setNodes(new Set([...nodes].filter(element => !negativeNDiff.has(element))));
       }
 
-      addElements(cy, diff);
+      if (negativeGDiff.size > 0) {
+        diff = new Set([...diff, ...negativeGDiff]);
+        setGroups(new Set([...groups].filter(element => !negativeGDiff.has(element))));
+      }
+
+      removeElements(cy, diff);
     }
-  }, [cy, graphContextEdges, graphContextNodes]);
+  }, [cy, graphContextEdges, graphContextNodes, graphContextGroups]);
 
   useEffect(() => {
     if (cy) {
-      const diff = groupDiff();
-      const newGroups = new Set([...groups, ...diff]);
+      let diff = new Set<GraphElement>([]);
+      const positiveNDiff = positiveNodeDiff();
+      const positiveEDiff = positiveEdgeDiff();
+      const positiveGDiff = positiveGroupDiff();
 
-      setGroups(newGroups);
+      if (positiveEDiff.size > 0) {
+        diff = new Set([...diff, ...positiveEDiff]);
+        setEdges(new Set([...edges, ...positiveEDiff]));
+      }
+
+      if (positiveNDiff.size > 0) {
+        diff = new Set([...diff, ...positiveNDiff]);
+        setNodes(new Set([...nodes, ...positiveNDiff]));
+      }
+
+      if (positiveGDiff.size > 0) {
+        diff = new Set([...diff, ...positiveGDiff]);
+        setGroups(new Set([...groups, ...positiveGDiff]));
+      }
+
       addElements(cy, diff);
-      updateNodes(cy, newGroups);
     }
-  }, [cy, graphContextGroups]);
+  }, [cy, graphContextEdges, graphContextNodes, graphContextGroups]);
+
+  useEffect(() => {
+    if (cy) {
+      updateGroupNodes(cy, nodes, graphContextGroupChildren);
+    }
+  }, [cy, nodes, graphContextGroupChildren]);
 
   useEffect(() => {
     if (ref.current && !cy) {

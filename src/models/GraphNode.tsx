@@ -1,16 +1,16 @@
 import { type ElementDefinition } from 'cytoscape';
 
+export type NodeID = string;
+
 class GraphNode {
   id: symbol;
-  elementId: string;
+  elementId: NodeID;
   label: string;
-  parent: string | undefined;
 
-  constructor({ id, label, parent }: { id: string, label?: string, parent?: string }) {
+  constructor({ id, label }: { id: string, label?: string }) {
     this.id = Symbol.for(id);
     this.label = label || id;
     this.elementId = id;
-    this.parent = parent;
   }
 
   toJSON(): string {
@@ -21,20 +21,11 @@ class GraphNode {
     return true;
   }
 
-  addParent(id: string): void {
-    this.parent = id;
-  }
-
-  removeParent(): void {
-    this.parent = undefined;
-  }
-
   toElement(): ElementDefinition {
     return {
       data: {
         id: this.elementId,
         label: this.label,
-        parent: this.parent,
       }
     }
   }

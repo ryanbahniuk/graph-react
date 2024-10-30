@@ -1,29 +1,40 @@
 import React, { createContext, type FC, type PropsWithChildren, useState } from 'react';
-import GraphNode from '../models/GraphNode';
-import GraphEdge from '../models/GraphEdge';
-import GraphGroup from '../models/GraphGroup';
+import GraphNode, { type NodeID } from '../models/GraphNode';
+import GraphEdge, { type EdgeID } from '../models/GraphEdge';
+import GraphGroup, { type GroupID } from '../models/GraphGroup';
+
 
 export interface NodeMap {
-  [key: string]: GraphNode;
+  [key: NodeID]: GraphNode;
 }
 
 export interface EdgeMap {
-  [key: string]: GraphEdge;
+  [key: EdgeID]: GraphEdge;
 }
 
 export interface GroupMap {
-  [key: string]: GraphGroup;
+  [key: GroupID]: GraphGroup;
+}
+
+export interface GroupChildrenMap {
+  [key: NodeID]: GroupID;
 }
 
 export type GraphContextType = {
 	nodes: NodeMap;
 	edges: EdgeMap;
 	groups: GroupMap;
+  groupChildren: GroupChildrenMap;
   addNode: (node: GraphNode) => void;
+  removeNode: (id: string) => void;
   addEdge: (edge: GraphEdge) => void;
   addNodes: (nodes: GraphNode[]) => void;
+  removeNodes: (ids: string[]) => void;
   addEdges: (edges: GraphEdge[]) => void;
-  groupNodes: (id: string, nodeIds: string[]) => void;
+  addGroup: (id: string) => void;
+  removeGroup: (id: string) => void;
+  addNodesToGroup: (id: string, nodeIds: string[]) => void;
+  removeNodesFromGroup: (id: string, nodeIds: string[]) => void;
 };
 
 export const GraphContext = createContext<GraphContextType | null>(null);
@@ -32,11 +43,19 @@ export const GraphProvider: FC<PropsWithChildren> = ({ children }) => {
 	const [nodes, setNodes] = useState<NodeMap>({});
 	const [edges, setEdges] = useState<EdgeMap>({});
 	const [groups, setGroups] = useState<GroupMap>({});
+	const [groupChildren, setGroupChildren] = useState<GroupChildrenMap>({});
 
   const addNode = (node: GraphNode) => {
     setNodes((existing) => {
       const newNodeMap = { ...existing };
       newNodeMap[node.elementId] = node;
+      return newNodeMap;
+    });
+  };
+
+  const removeNode = (id: string) => {
+    setNodes((existing) => {
+      const { [id]: _, ...newNodeMap } = existing;
       return newNodeMap;
     });
   };
@@ -51,23 +70,69 @@ export const GraphProvider: FC<PropsWithChildren> = ({ children }) => {
     });
   };
 
-  const groupNodes = (id: string, nodeIds: string[]) => {
+  const removeNodes = (ids: string[]) => {
+    setNodes((existing) => {
+      const newNodeMap = { ...existing };
+      ids.forEach((id) => {
+        delete newNodeMap[id];
+      });
+      return newNodeMap;
+    });
+  };
+
+  const addGroup = (id: string) => {
     let group = groups[id];
     if (!group) {
       group = new GraphGroup({ id });
     }
 
-    nodeIds.forEach((id) => {
-      const node = nodes[id];
-      if (node) {
-        group.addChild(node);
-      }
-    });
-
     setGroups((existing) => {
       const newGroupMap = { ...existing };
       newGroupMap[group.elementId] = group;
       return newGroupMap;
+    });
+  };
+
+  const removeGroup = (id: string) => {
+    setGroups((existing) => {
+      const { [id]: _, ...newGroupMap } = existing;
+      return newGroupMap;
+    });
+  };
+
+  const removeNodesFromGroup = (groupId: string, nodeIds: string[]) => {
+    const group = groups[groupId];
+    if (!group) {
+      return;
+    }
+
+    nodeIds.forEach((nodeId) => {
+      const node = nodes[nodeId];
+      if (node) {
+        setGroupChildren((existing) => {
+          const newGroupChildrenMap = { ...existing };
+          delete newGroupChildrenMap[nodeId];
+          return newGroupChildrenMap;
+        });
+      }
+    });
+  };
+
+  const addNodesToGroup = (groupId: string, nodeIds: string[]) => {
+    const group = groups[groupId];
+    if (!group) {
+      return;
+    }
+
+    nodeIds.forEach((nodeId) => {
+      const node = nodes[nodeId];
+      if (node) {
+        setGroupChildren((existing) => {
+          const newGroupChildrenMap = { ...existing };
+          newGroupChildrenMap[nodeId] = groupId;
+          return newGroupChildrenMap;
+        });
+      }
     });
   };
 
@@ -89,5 +154,22 @@ export const GraphProvider: FC<PropsWithChildren> = ({ children }) => {
     });
   };
 
-	return <GraphContext.Provider value={{ nodes, edges, groups, addNode, addEdge, addNodes, addEdges, groupNodes }}>{children}</GraphContext.Provider>;
+  const value = {
+    nodes,
+    edges,
+    groups,
+    groupChildren,
+    addNode,
+    removeNode,
+    addEdge,
+    addNodes,
+    removeNodes,
+    addEdges,
+    addGroup,
+    removeGroup,
+    addNodesToGroup,
+    removeNodesFromGroup
+  };
+
+	return <GraphContext.Provider value={value}>{children}</GraphContext.Provider>;
 };

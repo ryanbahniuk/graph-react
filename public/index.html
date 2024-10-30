@@ -43,16 +43,26 @@
         const addNode = (e) => {
           e.preventDefault();
           const form = e.target;
-          const textInput = form.querySelector("#node-id");
-          const nodeId = textInput.value;
-          const node = window.nodes.find((node) => node.elementId === nodeId);
-          graphContext.addNode(node);
+          const textInput = form.querySelector("#add-node-id");
+          const nodeIds = textInput.value.split(', ');
+          if (nodeIds.length > 1) {
+            const nodes = [];
+            nodeIds.forEach((nodeId) => {
+              const node = window.nodes.find((node) => node.elementId === nodeId);
+              nodes.push(node);
+            });
+
+            graphContext.addNodes(nodes);
+          } else {
+            const node = window.nodes.find((node) => node.elementId === nodeIds[0]);
+            graphContext.addNode(node);
+          }
         }
 
         return (
           <form onSubmit={addNode}>
-            <input type="text" id="node-id" placeholder="Node ID"/>
-            <button>Add Node</button>
+            <input type="text" id="add-node-id" placeholder="Node ID(s)"/>
+            <button>Add Node(s)</button>
           </form>
         );
       };
@@ -60,19 +70,81 @@
       const AddGroupForm = () => {
         const graphContext = GraphComponent.useGraph();
 
+        const addGroup = (e) => {
+          e.preventDefault();
+          const form = e.target;
+          const textInput = form.querySelector("#add-group-id");
+          const groupId = textInput.value;
+          graphContext.addGroup(groupId);
+        }
+
+        return (
+          <form onSubmit={addGroup}>
+            <input type="text" id="add-group-id" placeholder="Group ID"/>
+            <button>Add Group</button>
+          </form>
+        );
+      };
+
+      const RemoveNodeForm = () => {
+        const graphContext = GraphComponent.useGraph();
+
+        const removeNode = (e) => {
+          e.preventDefault();
+          const form = e.target;
+          const textInput = form.querySelector("#remove-node-id");
+          const nodeIds = textInput.value.split(', ');
+          if (nodeIds.length > 1) {
+            graphContext.removeNodes(nodeIds);
+          } else {
+            graphContext.removeNode(nodeIds[0]);
+          }
+        }
+
+        return (
+          <form onSubmit={removeNode}>
+            <input type="text" id="remove-node-id" placeholder="Node ID(s)"/>
+            <button>Remove Node(s)</button>
+          </form>
+        );
+      };
+
+      const AddNodeToGroupForm = () => {
+        const graphContext = GraphComponent.useGraph();
+
         const submit = (e) => {
           e.preventDefault();
           const form = e.target;
           const groupId = form.querySelector("#group-form-group-id").value;
-          const nodeId = form.querySelector("#group-form-node-id").value;
-          graphContext.groupNodes(groupId, [nodeId]);
+          const nodeIds = form.querySelector("#group-form-node-id").value.split(', ');
+          graphContext.addNodesToGroup(groupId, nodeIds);
         }
 
         return (
           <form onSubmit={submit}>
             <input type="text" id="group-form-group-id" placeholder="Group ID"/>
-            <input type="text" id="group-form-node-id" placeholder="Node ID"/>
-            <button>Add Group</button>
+            <input type="text" id="group-form-node-id" placeholder="Node ID(s)"/>
+            <button>Add to Group</button>
+          </form>
+        );
+      };
+
+      const RemoveNodeFromGroupForm = () => {
+        const graphContext = GraphComponent.useGraph();
+
+        const submit = (e) => {
+          e.preventDefault();
+          const form = e.target;
+          const groupId = form.querySelector("#remove-group-form-group-id").value;
+          const nodeIds = form.querySelector("#remove-group-form-node-id").value.split(', ');
+          graphContext.removeNodesFromGroup(groupId, nodeIds);
+        }
+
+        return (
+          <form onSubmit={submit}>
+            <input type="text" id="remove-group-form-group-id" placeholder="Group ID"/>
+            <input type="text" id="remove-group-form-node-id" placeholder="Node ID(s)"/>
+            <button>Remove from Group</button>
           </form>
         );
       };
@@ -101,6 +173,44 @@
         );
       };
 
+      const Groups = () => {
+        const graphContext = GraphComponent.useGraph();
+
+        const list = Object.values(graphContext.groups).map((group) => {
+          const onRemoveClick = () => graphContext.removeGroup(group.elementId);
+
+          return (
+            <div>{group.label} - <span onClick={onRemoveClick}>Remove</span></div>
+          );
+        });
+
+        return (
+          <div>
+            Groups
+            {list}
+          </div>
+        );
+      };
+
+      const Nodes = () => {
+        const graphContext = GraphComponent.useGraph();
+
+        const list = Object.values(graphContext.nodes).map((node) => {
+          const onRemoveClick = () => graphContext.removeNode(node.elementId);
+
+          return (
+            <div>{node.elementId} - <span onClick={onRemoveClick}>Remove</span></div>
+          );
+        });
+
+        return (
+          <div>
+            Nodes
+            {list}
+          </div>
+        );
+      };
+
       function App() {
         return (
           <GraphComponent.GraphProvider>
@@ -109,7 +219,14 @@
                 <AddNodesButton />
                 <AddEdgesButton />
                 <AddNodeForm />
+                <RemoveNodeForm />
                 <AddGroupForm />
+                <AddNodeToGroupForm />
+                <RemoveNodeFromGroupForm />
+                <div style={ { display: "flex" } }>
+                  <Groups />
+                  <Nodes />
+                </div>
               </div>
               <div>
                 <GraphComponent.Graph style={style} />
