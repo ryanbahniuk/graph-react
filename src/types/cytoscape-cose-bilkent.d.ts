@@ -27,6 +27,7 @@ declare module 'cytoscape-cose-bilkent' {
     numIter?: number;
     initialTemp?: number;
     coolingFactor?: number;
+    fit?: boolean;
     minTemp?: number;
     animationThreshold?: number;
     animationDuration?: number;

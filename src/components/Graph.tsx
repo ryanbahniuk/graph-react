@@ -30,6 +30,7 @@ const baseCoseLayoutOptions: CoseBilkentLayoutOptions = {
   randomize: true,
   initialEnergyOnIncremental: 0.3,
   animate: 'end',
+  fit: true,
   animationDuration: 1000,
   animationEasing: 'ease-in-out',
 };
@@ -126,10 +127,21 @@ const stylesheet = [
   {
     selector: ':parent',
     style: {
+      'shape': 'rectangle',
       'background-opacity': 0.333,
       'background-color': '#fafafa',
-      'border-color': '#2B65EC',
-      'border-width': 2
+      'border-color': '#000',
+      'border-width': 2,
+    }
+  },
+  {
+    selector: '.group',
+    style: {
+      'shape': 'rectangle',
+      'background-opacity': 0.333,
+      'background-color': '#fafafa',
+      'border-color': '#000',
+      'border-width': 2,
     }
   }
 ];

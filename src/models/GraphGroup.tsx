@@ -1,5 +1,4 @@
 import { type ElementDefinition } from 'cytoscape';
-import GraphNode from './GraphNode';
 
 export type GroupID = string;
 
@@ -27,7 +26,8 @@ class GraphGroup {
       data: {
         id: this.elementId,
         label: this.label,
-      }
+      },
+      classes: 'group',
     }
   }
 }
