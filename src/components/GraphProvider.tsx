@@ -81,19 +81,25 @@ export const GraphProvider: FC<PropsWithChildren> = ({ children }) => {
   };
 
   const addGroup = (id: string) => {
-    let group = groups[id];
-    if (!group) {
-      group = new GraphGroup({ id });
+    const existingGroup = groups[id];
+    if (existingGroup) {
+      return;
     }
 
     setGroups((existing) => {
       const newGroupMap = { ...existing };
-      newGroupMap[group.elementId] = group;
+      const newGroup = new GraphGroup({ id });
+      newGroupMap[newGroup.elementId] = newGroup;
       return newGroupMap;
     });
   };
 
   const removeGroup = (id: string) => {
+    const existingGroup = groups[id];
+    if (!existingGroup) {
+      return;
+    }
+
     setGroups((existing) => {
       const { [id]: _, ...newGroupMap } = existing;
       return newGroupMap;
