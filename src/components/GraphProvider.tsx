@@ -1,4 +1,4 @@
-import React, { createContext, type FC, type PropsWithChildren, useState } from 'react';
+import React, { createContext, type FC, type PropsWithChildren, useState, useCallback } from 'react';
 import GraphNode, { type NodeID } from '../models/GraphNode';
 import GraphEdge, { type EdgeID } from '../models/GraphEdge';
 import GraphGroup, { type GroupID } from '../models/GraphGroup';
@@ -81,12 +81,12 @@ export const GraphProvider: FC<PropsWithChildren> = ({ children }) => {
   };
 
   const addGroup = (id: string) => {
-    const existingGroup = groups[id];
-    if (existingGroup) {
-      return;
-    }
-
     setGroups((existing) => {
+      const existingGroup = existing[id];
+      if (existingGroup) {
+        return existing;
+      }
+
       const newGroupMap = { ...existing };
       const newGroup = new GraphGroup({ id });
       newGroupMap[newGroup.elementId] = newGroup;
@@ -95,18 +95,13 @@ export const GraphProvider: FC<PropsWithChildren> = ({ children }) => {
   };
 
   const removeGroup = (id: string) => {
-    const existingGroup = groups[id];
-    if (!existingGroup) {
-      return;
-    }
-
     setGroups((existing) => {
       const { [id]: _, ...newGroupMap } = existing;
       return newGroupMap;
     });
   };
 
-  const removeNodesFromGroup = (groupId: string, nodeIds: string[]) => {
+  const removeNodesFromGroup = useCallback((groupId: string, nodeIds: string[]) => {
     const group = groups[groupId];
     if (!group) {
       return;
@@ -122,9 +117,9 @@ export const GraphProvider: FC<PropsWithChildren> = ({ children }) => {
         });
       }
     });
-  };
+  }, [groups, nodes]);
 
-  const addNodesToGroup = (groupId: string, nodeIds: string[]) => {
+  const addNodesToGroup = useCallback((groupId: string, nodeIds: string[]) => {
     const group = groups[groupId];
     if (!group) {
       return;
@@ -140,7 +135,7 @@ export const GraphProvider: FC<PropsWithChildren> = ({ children }) => {
         });
       }
     });
-  };
+  }, [groups, nodes]);
 
   const addEdge = (edge: GraphEdge) => {
     setEdges((existing) => {
