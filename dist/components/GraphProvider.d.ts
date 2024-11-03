@@ -29,6 +29,7 @@ export type GraphContextType = {
     removeGroup: (id: string) => void;
     addNodesToGroup: (id: string, nodeIds: string[]) => void;
     removeNodesFromGroup: (id: string, nodeIds: string[]) => void;
+    clear: () => void;
 };
 export declare const GraphContext: React.Context<GraphContextType | null>;
 export declare const GraphProvider: FC<PropsWithChildren>;

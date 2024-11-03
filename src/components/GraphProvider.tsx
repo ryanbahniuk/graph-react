@@ -35,6 +35,7 @@ export type GraphContextType = {
   removeGroup: (id: string) => void;
   addNodesToGroup: (id: string, nodeIds: string[]) => void;
   removeNodesFromGroup: (id: string, nodeIds: string[]) => void;
+  clear: () => void;
 };
 
 export const GraphContext = createContext<GraphContextType | null>(null);
@@ -44,6 +45,13 @@ export const GraphProvider: FC<PropsWithChildren> = ({ children }) => {
 	const [edges, setEdges] = useState<EdgeMap>({});
 	const [groups, setGroups] = useState<GroupMap>({});
 	const [groupChildren, setGroupChildren] = useState<GroupChildrenMap>({});
+
+  const clear = () => {
+    setNodes({});
+    setEdges({});
+    setGroups({});
+    setGroupChildren({});
+  }
 
   const addNode = (node: GraphNode) => {
     setNodes((existing) => {
@@ -169,7 +177,8 @@ export const GraphProvider: FC<PropsWithChildren> = ({ children }) => {
     addGroup,
     removeGroup,
     addNodesToGroup,
-    removeNodesFromGroup
+    removeNodesFromGroup,
+    clear,
   };
 
 	return <GraphContext.Provider value={value}>{children}</GraphContext.Provider>;

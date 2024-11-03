@@ -161,6 +161,18 @@
         );
       };
 
+      const ClearButton = () => {
+        const graphContext = GraphComponent.useGraph();
+
+        const clear = () => {
+          graphContext.clear();
+        }
+
+        return (
+          <button onClick={clear}>Clear Data</button>
+        );
+      };
+
       const AddEdgesButton = () => {
         const graphContext = GraphComponent.useGraph();
 
@@ -223,6 +235,7 @@
                 <AddGroupForm />
                 <AddNodeToGroupForm />
                 <RemoveNodeFromGroupForm />
+                <ClearButton />
                 <div style={ { display: "flex" } }>
                   <Groups />
                   <Nodes />
