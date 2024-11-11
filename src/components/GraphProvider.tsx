@@ -44,6 +44,9 @@ export const GraphProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const addNode = (node: GraphNode) => {
     setNodes((existing) => {
+      if (existing.has(node.elementId)) {
+        return existing;
+      }
       const newNodeMap = new Map(existing);
       newNodeMap.set(node.elementId, node);
       return newNodeMap;
@@ -52,6 +55,9 @@ export const GraphProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const removeNode = (id: NodeID) => {
     setNodes((existing) => {
+      if (!existing.has(id)) {
+        return existing;
+      }
       const newNodeMap = new Map(existing);
       newNodeMap.delete(id);
       return newNodeMap;

@@ -109,24 +109,6 @@
         );
       };
 
-      const SelectedNodeForm = ({ setElementStyles }) => {
-        const submit = (e) => {
-          e.preventDefault();
-          const form = e.target;
-          const selectedNodeId = form.querySelector("#selected-node-id").value;
-          const newElementStyles = new Map
-          newElementStyles.set(selectedNodeId, { 'background-color': 'tomato' });
-          setElementStyles(newElementStyles);
-        }
-
-        return (
-          <form onSubmit={submit}>
-            <input type="text" id="selected-node-id" placeholder="Selected Node ID"/>
-            <button>Select Node</button>
-          </form>
-        );
-      };
-
       const AddNodeToGroupForm = () => {
         const graphContext = GraphComponent.useGraph();
 
@@ -244,6 +226,13 @@
       const App = () => {
         const [elementStyles, setElementStyles] = React.useState(new Map);
 
+        const onNodeClick = React.useCallback((node) => {
+          const selectedNodeId = node.data('id');
+          const newElementStyles = new Map
+          newElementStyles.set(selectedNodeId, { 'background-color': 'tomato' });
+          setElementStyles(newElementStyles);
+        }, [setElementStyles]);
+
         return (
           <GraphComponent.GraphProvider>
             <div style={parentStyle}>
@@ -255,7 +244,6 @@
                 <AddGroupForm />
                 <AddNodeToGroupForm />
                 <RemoveNodeFromGroupForm />
-                <SelectedNodeForm setElementStyles={setElementStyles} />
                 <ClearButton />
                 <div style={ { display: "flex" } }>
                   <Groups />
@@ -263,7 +251,7 @@
                 </div>
               </div>
               <div>
-                <GraphComponent.Graph style={style} elementStyles={elementStyles} />
+                <GraphComponent.Graph style={style} elementStyles={elementStyles} onNodeClick={onNodeClick} />
               </div>
             </div>
           </GraphComponent.GraphProvider>
