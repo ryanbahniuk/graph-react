@@ -1,8 +1,9 @@
 import { type ElementDefinition } from 'cytoscape';
 
+import { type ID } from '../types/ID';
 import { type NodeID } from './GraphNode';
 
-export type EdgeID = string;
+export type EdgeID = ID<'Edge'>;
 
 class GraphEdge {
   id: symbol;
@@ -14,9 +15,9 @@ class GraphEdge {
   constructor({ sourceId, targetId, weight }: { sourceId: string, targetId: string, weight: number }) {
     const representation = `GraphEdge:${sourceId}${targetId}`;
     this.id = Symbol.for(representation);
-    this.elementId = representation
-    this.sourceId = sourceId;
-    this.targetId = targetId;
+    this.elementId = representation as EdgeID;
+    this.sourceId = sourceId as NodeID;
+    this.targetId = targetId as NodeID;
     this.weight = weight;
   }
 

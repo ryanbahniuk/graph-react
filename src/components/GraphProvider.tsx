@@ -4,21 +4,10 @@ import GraphEdge, { type EdgeID } from '../models/GraphEdge';
 import GraphGroup, { type GroupID } from '../models/GraphGroup';
 
 
-export interface NodeMap {
-  [key: NodeID]: GraphNode;
-}
-
-export interface EdgeMap {
-  [key: EdgeID]: GraphEdge;
-}
-
-export interface GroupMap {
-  [key: GroupID]: GraphGroup;
-}
-
-export interface GroupChildrenMap {
-  [key: NodeID]: GroupID;
-}
+export type NodeMap = Map<NodeID, GraphNode>;
+export type EdgeMap = Map<EdgeID, GraphEdge>;
+export type GroupMap = Map<GroupID, GraphGroup>;
+export type GroupChildrenMap = Map<NodeID, GroupID>;
 
 export type GraphContextType = {
 	nodes: NodeMap;
@@ -26,119 +15,118 @@ export type GraphContextType = {
 	groups: GroupMap;
   groupChildren: GroupChildrenMap;
   addNode: (node: GraphNode) => void;
-  removeNode: (id: string) => void;
+  removeNode: (id: NodeID) => void;
   addEdge: (edge: GraphEdge) => void;
   addNodes: (nodes: GraphNode[]) => void;
-  removeNodes: (ids: string[]) => void;
+  removeNodes: (ids: NodeID[]) => void;
   addEdges: (edges: GraphEdge[]) => void;
-  addGroup: (id: string) => void;
-  removeGroup: (id: string) => void;
-  addNodesToGroup: (id: string, nodeIds: string[]) => void;
-  removeNodesFromGroup: (id: string, nodeIds: string[]) => void;
+  addGroup: (id: GroupID) => void;
+  removeGroup: (id: GroupID) => void;
+  addNodesToGroup: (id: GroupID, nodeIds: NodeID[]) => void;
+  removeNodesFromGroup: (id: GroupID, nodeIds: NodeID[]) => void;
   clear: () => void;
 };
 
 export const GraphContext = createContext<GraphContextType | null>(null);
 
 export const GraphProvider: FC<PropsWithChildren> = ({ children }) => {
-	const [nodes, setNodes] = useState<NodeMap>({});
-	const [edges, setEdges] = useState<EdgeMap>({});
-	const [groups, setGroups] = useState<GroupMap>({});
-	const [groupChildren, setGroupChildren] = useState<GroupChildrenMap>({});
+	const [nodes, setNodes] = useState<NodeMap>(new Map);
+	const [edges, setEdges] = useState<EdgeMap>(new Map);
+	const [groups, setGroups] = useState<GroupMap>(new Map);
+	const [groupChildren, setGroupChildren] = useState<GroupChildrenMap>(new Map);
 
   const clear = () => {
-    setNodes({});
-    setEdges({});
-    setGroups({});
-    setGroupChildren({});
+    setNodes(new Map);
+    setEdges(new Map);
+    setGroups(new Map);
+    setGroupChildren(new Map);
   }
 
   const addNode = (node: GraphNode) => {
     setNodes((existing) => {
-      const newNodeMap = { ...existing };
-      newNodeMap[node.elementId] = node;
+      const newNodeMap = new Map(existing);
+      newNodeMap.set(node.elementId, node);
       return newNodeMap;
     });
   };
 
-  const removeNode = (id: string) => {
+  const removeNode = (id: NodeID) => {
     setNodes((existing) => {
-      const { [id]: _, ...newNodeMap } = existing;
+      const newNodeMap = new Map(existing);
+      newNodeMap.delete(id);
       return newNodeMap;
     });
   };
 
   const addNodes = (nodes: GraphNode[]) => {
     setNodes((existing) => {
-      const newNodeMap = { ...existing };
+      const newNodeMap = new Map(existing);
       nodes.forEach((node) => {
-        newNodeMap[node.elementId] = node;
+        newNodeMap.set(node.elementId, node);
       });
       return newNodeMap;
     });
   };
 
-  const removeNodes = (ids: string[]) => {
+  const removeNodes = (ids: NodeID[]) => {
     setNodes((existing) => {
-      const newNodeMap = { ...existing };
+      const newNodeMap = new Map(existing);
       ids.forEach((id) => {
-        delete newNodeMap[id];
+        newNodeMap.delete(id);
       });
       return newNodeMap;
     });
   };
 
-  const addGroup = (id: string) => {
+  const addGroup = (id: GroupID) => {
     setGroups((existing) => {
-      const existingGroup = existing[id];
-      if (existingGroup) {
+      if (existing.has(id)) {
         return existing;
       }
 
-      const newGroupMap = { ...existing };
+      const newGroupMap = new Map(existing);
       const newGroup = new GraphGroup({ id });
-      newGroupMap[newGroup.elementId] = newGroup;
+      newGroupMap.set(newGroup.elementId, newGroup);
       return newGroupMap;
     });
   };
 
-  const removeGroup = (id: string) => {
+  const removeGroup = (id: GroupID) => {
     setGroups((existing) => {
-      const { [id]: _, ...newGroupMap } = existing;
+      const newGroupMap = new Map(existing);
+      newGroupMap.delete(id);
       return newGroupMap;
     });
   };
 
-  const removeNodesFromGroup = useCallback((groupId: string, nodeIds: string[]) => {
-    const group = groups[groupId];
-    if (!group) {
+  const removeNodesFromGroup = useCallback((groupId: GroupID, nodeIds: NodeID[]) => {
+    if (!groups.has(groupId)) {
       return;
     }
 
     nodeIds.forEach((nodeId) => {
-      const node = nodes[nodeId];
+      const node = nodes.get(nodeId);
       if (node) {
         setGroupChildren((existing) => {
-          const newGroupChildrenMap = { ...existing };
-          delete newGroupChildrenMap[nodeId];
+          const newGroupChildrenMap = new Map(existing);
+          newGroupChildrenMap.delete(nodeId);
           return newGroupChildrenMap;
         });
       }
     });
   }, [groups, nodes]);
 
-  const addNodesToGroup = useCallback((groupId: string, nodeIds: string[]) => {
-    const group = groups[groupId];
-    if (!group) {
+  const addNodesToGroup = useCallback((groupId: GroupID, nodeIds: NodeID[]) => {
+    if (!groups.has(groupId)) {
       return;
     }
 
     nodeIds.forEach((nodeId) => {
-      const node = nodes[nodeId];
+      const node = nodes.get(nodeId);
       if (node) {
         setGroupChildren((existing) => {
-          const newGroupChildrenMap = { ...existing };
-          newGroupChildrenMap[nodeId] = groupId;
+          const newGroupChildrenMap = new Map(existing);
+          newGroupChildrenMap.set(nodeId, groupId);
           return newGroupChildrenMap;
         });
       }
@@ -147,17 +135,17 @@ export const GraphProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const addEdge = (edge: GraphEdge) => {
     setEdges((existing) => {
-      const newEdgeMap = { ...existing };
-      newEdgeMap[edge.elementId] = edge;
+      const newEdgeMap = new Map(existing);
+      newEdgeMap.set(edge.elementId, edge);
       return newEdgeMap;
     });
   };
 
   const addEdges = (edges: GraphEdge[]) => {
     setEdges((existing) => {
-      const newEdgeMap = { ...existing };
+      const newEdgeMap = new Map(existing);
       edges.forEach((edge: GraphEdge) => {
-        newEdgeMap[edge.elementId] = edge;
+        newEdgeMap.set(edge.elementId, edge);
       });
       return newEdgeMap;
     });

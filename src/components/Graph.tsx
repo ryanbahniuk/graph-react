@@ -7,13 +7,15 @@ import {
 	type EventObject,
 	type EdgeSingular,
 	type NodeSingular,
+  type Stylesheet,
+  type Css,
 } from 'cytoscape';
 import cose from 'cytoscape-cose-bilkent';
 import { type CoseBilkentLayoutOptions } from 'cytoscape-cose-bilkent';
 import { type GroupChildrenMap } from './GraphProvider';
-import GraphNode from '../models/GraphNode';
-import GraphEdge from '../models/GraphEdge';
-import GraphGroup from '../models/GraphGroup';
+import GraphNode, { type NodeID } from '../models/GraphNode';
+import GraphEdge, { type EdgeID } from '../models/GraphEdge';
+import GraphGroup, { type GroupID } from '../models/GraphGroup';
 import useGraph from '../hooks/useGraph';
 import { averageEdgeCount } from '../helpers/graphHelpers';
 import { buildSimpleClusters } from '../helpers/clusterHelpers';
@@ -72,7 +74,7 @@ const runLayout = (collection: CollectionReturnValue, cy: Core, autoGroup?: bool
 
 const updateGroupNodes = (cy: Core, nodes: Set<GraphNode>, graphContextGroupChildren: GroupChildrenMap) => {
   nodes.forEach((graphNode) => {
-    const groupId = graphContextGroupChildren[graphNode.elementId];
+    const groupId = graphContextGroupChildren.get(graphNode.elementId);
     const node = cy.getElementById(graphNode.elementId);
 
     if (groupId) {
@@ -104,7 +106,7 @@ const addElements = (cy: Core, newElements: Set<GraphElement>) => {
 	cy.nodes().unlock();
 };
 
-const stylesheet = [
+const baseStylesheet = [
   {
     selector: 'node',
     style: {
@@ -146,6 +148,41 @@ const stylesheet = [
   }
 ];
 
+const updateStyles = (cy: Core, elementStyles: ElementStyles): void => {
+  const cyStyle = cy.style(baseStylesheet);
+
+  elementStyles.forEach((value, key) => {
+    cyStyle
+      .selector(`#${key}`)
+      .style(value);
+  });
+
+  cyStyle.update();
+};
+
+const buildStylesheet = (elementStyles?: ElementStyles): Stylesheet[] => {
+  if (!elementStyles) {
+    return baseStylesheet;
+  }
+
+  const elementObjs: Stylesheet[] = [];
+  elementStyles.forEach((value, key) => {
+    elementObjs.push({
+      selector: `#${String(key)}`,
+      style: value,
+    });
+  });
+
+  return [
+    ...baseStylesheet,
+    ...elementObjs,
+  ];
+}
+
+type ElementStylesKey = NodeID | EdgeID | GroupID;
+type ElementStylesValue = Css.Node | Css.Edge;
+type ElementStyles = Map<ElementStylesKey, ElementStylesValue>;
+
 interface GraphProps {
   onNodeLoad?: (node: NodeSingular) => void;
   onNodeMouseover?: (node: NodeSingular) => void;
@@ -155,12 +192,14 @@ interface GraphProps {
   onEdgeMouseover?: (edge: EdgeSingular) => void;
   onEdgeMouseout?: (edge: EdgeSingular) => void;
   style?: CSSProperties;
+  elementStyles?: ElementStyles;
   autoGroup?: boolean;
 }
 
 export default function Graph(props: GraphProps): React.ReactElement {
   const {
     //autoGroup,
+    elementStyles,
     onNodeLoad,
     onNodeMouseover,
     onNodeMouseout,
@@ -182,24 +221,24 @@ export default function Graph(props: GraphProps): React.ReactElement {
   const [nodes, setNodes] = useState<Set<GraphNode>>(() => new Set([]));
   const [edges, setEdges] = useState<Set<GraphEdge>>(() => new Set([]));
   const [groups, setGroups] = useState<Set<GraphGroup>>(() => new Set([]));
-  const contextNodes = new Set(Object.values(graphContextNodes));
-  const contextGroups = new Set(Object.values(graphContextGroups));
+  const contextNodes = new Set<GraphNode>(Array.from(graphContextNodes.values()));
+  const contextGroups = new Set<GraphGroup>(Array.from(graphContextGroups.values()));
 
-  const positiveGroupDiff = useCallback(() => setDifference(contextGroups, groups), [contextGroups, groups]);
-  const negativeGroupDiff = useCallback(() => setDifference(groups, contextGroups), [contextGroups, groups]);
-  const positiveNodeDiff = useCallback(() => setDifference(contextNodes, nodes), [contextNodes, nodes]);
-  const negativeNodeDiff = useCallback(() => setDifference(nodes, contextNodes), [contextNodes, nodes]);
+  const positiveGroupDiff = useCallback(() => setDifference<GraphGroup>(contextGroups, groups), [contextGroups, groups]);
+  const negativeGroupDiff = useCallback(() => setDifference<GraphGroup>(groups, contextGroups), [contextGroups, groups]);
+  const positiveNodeDiff = useCallback(() => setDifference<GraphNode>(contextNodes, nodes), [contextNodes, nodes]);
+  const negativeNodeDiff = useCallback(() => setDifference<GraphNode>(nodes, contextNodes), [contextNodes, nodes]);
   const negativeEdgeDiff = useCallback(() => {
-    const relevantEdges = Object.values(graphContextEdges).filter((edge) => {
-      return graphContextNodes[edge.sourceId] && graphContextNodes[edge.targetId]
+    const relevantEdges = Array.from(graphContextEdges.values()).filter((edge: GraphEdge) => {
+      return graphContextNodes.has(edge.sourceId) && graphContextNodes.has(edge.targetId);
     });
-    return setDifference(edges, new Set(relevantEdges));
+    return setDifference<GraphEdge>(edges, new Set<GraphEdge>(relevantEdges));
   }, [graphContextEdges, graphContextNodes, edges]);
   const positiveEdgeDiff = useCallback(() => {
-    const relevantEdges = Object.values(graphContextEdges).filter((edge) => {
-      return graphContextNodes[edge.sourceId] && graphContextNodes[edge.targetId]
+    const relevantEdges = Array.from(graphContextEdges.values()).filter((edge: GraphEdge) => {
+      return graphContextNodes.has(edge.sourceId) && graphContextNodes.has(edge.targetId);
     });
-    return setDifference(new Set(relevantEdges), edges);
+    return setDifference<GraphEdge>(new Set<GraphEdge>(relevantEdges), edges);
   }, [graphContextEdges, graphContextNodes, edges]);
 
   useEffect(() => {
@@ -211,17 +250,17 @@ export default function Graph(props: GraphProps): React.ReactElement {
 
       if (negativeEDiff.size > 0) {
         diff = new Set([...diff, ...negativeEDiff]);
-        setEdges(new Set([...edges].filter(element => !negativeEDiff.has(element))));
+        setEdges(new Set<GraphEdge>([...edges].filter(element => !negativeEDiff.has(element))));
       }
 
       if (negativeNDiff.size > 0) {
         diff = new Set([...diff, ...negativeNDiff]);
-        setNodes(new Set([...nodes].filter(element => !negativeNDiff.has(element))));
+        setNodes(new Set<GraphNode>([...nodes].filter(element => !negativeNDiff.has(element))));
       }
 
       if (negativeGDiff.size > 0) {
         diff = new Set([...diff, ...negativeGDiff]);
-        setGroups(new Set([...groups].filter(element => !negativeGDiff.has(element))));
+        setGroups(new Set<GraphGroup>([...groups].filter(element => !negativeGDiff.has(element))));
       }
 
       removeElements(cy, diff);
@@ -275,10 +314,16 @@ export default function Graph(props: GraphProps): React.ReactElement {
         autolock: false,
         autoungrabify: false,
         autounselectify: false,
-        style: stylesheet,
+        style: buildStylesheet(elementStyles),
       }));
     }
   }, [setCy, ref, cy]);
+
+  useEffect(() => {
+    if (cy && elementStyles) {
+      updateStyles(cy, elementStyles);
+    }
+  }, [cy, elementStyles]);
 
   useEffect(() => {
     if (cy && onNodeMouseover) {

@@ -1,5 +1,6 @@
 import { type ElementDefinition } from 'cytoscape';
-export type GroupID = string;
+import { type ID } from '../types/ID';
+export type GroupID = ID<'Group'>;
 declare class GraphGroup {
     id: symbol;
     elementId: GroupID;

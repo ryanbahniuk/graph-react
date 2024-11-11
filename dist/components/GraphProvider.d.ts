@@ -2,33 +2,25 @@ import React, { type FC, type PropsWithChildren } from 'react';
 import GraphNode, { type NodeID } from '../models/GraphNode';
 import GraphEdge, { type EdgeID } from '../models/GraphEdge';
 import GraphGroup, { type GroupID } from '../models/GraphGroup';
-export interface NodeMap {
-    [key: NodeID]: GraphNode;
-}
-export interface EdgeMap {
-    [key: EdgeID]: GraphEdge;
-}
-export interface GroupMap {
-    [key: GroupID]: GraphGroup;
-}
-export interface GroupChildrenMap {
-    [key: NodeID]: GroupID;
-}
+export type NodeMap = Map<NodeID, GraphNode>;
+export type EdgeMap = Map<EdgeID, GraphEdge>;
+export type GroupMap = Map<GroupID, GraphGroup>;
+export type GroupChildrenMap = Map<NodeID, GroupID>;
 export type GraphContextType = {
     nodes: NodeMap;
     edges: EdgeMap;
     groups: GroupMap;
     groupChildren: GroupChildrenMap;
     addNode: (node: GraphNode) => void;
-    removeNode: (id: string) => void;
+    removeNode: (id: NodeID) => void;
     addEdge: (edge: GraphEdge) => void;
     addNodes: (nodes: GraphNode[]) => void;
-    removeNodes: (ids: string[]) => void;
+    removeNodes: (ids: NodeID[]) => void;
     addEdges: (edges: GraphEdge[]) => void;
-    addGroup: (id: string) => void;
-    removeGroup: (id: string) => void;
-    addNodesToGroup: (id: string, nodeIds: string[]) => void;
-    removeNodesFromGroup: (id: string, nodeIds: string[]) => void;
+    addGroup: (id: GroupID) => void;
+    removeGroup: (id: GroupID) => void;
+    addNodesToGroup: (id: GroupID, nodeIds: NodeID[]) => void;
+    removeNodesFromGroup: (id: GroupID, nodeIds: NodeID[]) => void;
     clear: () => void;
 };
 export declare const GraphContext: React.Context<GraphContextType | null>;

@@ -90,6 +90,24 @@
         );
       };
 
+      const SelectedNodeForm = ({ setElementStyles }) => {
+        const submit = (e) => {
+          e.preventDefault();
+          const form = e.target;
+          const selectedNodeId = form.querySelector("#selected-node-id").value;
+          const newElementStyles = new Map
+          newElementStyles.set(selectedNodeId, { 'background-color': 'tomato' });
+          setElementStyles(newElementStyles);
+        }
+
+        return (
+          <form onSubmit={submit}>
+            <input type="text" id="selected-node-id" placeholder="Selected Node ID"/>
+            <button>Select Node</button>
+          </form>
+        );
+      };
+
       const AddNodeToGroupForm = () => {
         const graphContext = GraphComponent.useGraph();
 
@@ -169,11 +187,11 @@
       const Groups = () => {
         const graphContext = GraphComponent.useGraph();
 
-        const list = Object.values(graphContext.groups).map((group) => {
+        const list = Array.from(graphContext.groups.values()).map((group) => {
           const onRemoveClick = () => graphContext.removeGroup(group.elementId);
 
           return (
-            <div>{group.label} - <span onClick={onRemoveClick}>Remove</span></div>
+            <div key={group.elementId}>{group.label} - <span onClick={onRemoveClick}>Remove</span></div>
           );
         });
 
@@ -188,11 +206,11 @@
       const Nodes = () => {
         const graphContext = GraphComponent.useGraph();
 
-        const list = Object.values(graphContext.nodes).map((node) => {
+        const list = Array.from(graphContext.nodes.values()).map((node) => {
           const onRemoveClick = () => graphContext.removeNode(node.elementId);
 
           return (
-            <div>{node.elementId} - <span onClick={onRemoveClick}>Remove</span></div>
+            <div key={node.elementId}>{node.elementId} - <span onClick={onRemoveClick}>Remove</span></div>
           );
         });
 
@@ -204,7 +222,9 @@
         );
       };
 
-      function App() {
+      const App = () => {
+        const [elementStyles, setElementStyles] = React.useState(new Map);
+
         return (
           <GraphComponent.GraphProvider>
             <div style={parentStyle}>
@@ -216,6 +236,7 @@
                 <AddGroupForm />
                 <AddNodeToGroupForm />
                 <RemoveNodeFromGroupForm />
+                <SelectedNodeForm setElementStyles={setElementStyles} />
                 <ClearButton />
                 <div style={ { display: "flex" } }>
                   <Groups />
@@ -223,7 +244,7 @@
                 </div>
               </div>
               <div>
-                <GraphComponent.Graph style={style} />
+                <GraphComponent.Graph style={style} elementStyles={elementStyles} />
               </div>
             </div>
           </GraphComponent.GraphProvider>

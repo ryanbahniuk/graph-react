@@ -1,6 +1,8 @@
 import { type ElementDefinition } from 'cytoscape';
 
-export type GroupID = string;
+import { type ID } from '../types/ID';
+
+export type GroupID = ID<'Group'>;
 
 class GraphGroup {
   id: symbol;
@@ -10,7 +12,7 @@ class GraphGroup {
   constructor({ id, label }: { id: string, label?: string }) {
     this.id = Symbol.for(id);
     this.label = label || id;
-    this.elementId = id;
+    this.elementId = id as GroupID;
   }
 
   toJSON(): string {

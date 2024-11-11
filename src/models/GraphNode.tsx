@@ -1,6 +1,7 @@
 import { type ElementDefinition } from 'cytoscape';
+import { type ID } from '../types/ID';
 
-export type NodeID = string;
+export type NodeID = ID<'Node'>;
 
 class GraphNode {
   id: symbol;
@@ -11,7 +12,7 @@ class GraphNode {
   constructor({ id, label, nodeType }: { id: string, label?: string, nodeType?: string }) {
     this.id = Symbol.for(id);
     this.label = label || id;
-    this.elementId = id;
+    this.elementId = id as NodeID;
     this.nodeType = nodeType || 'Generic';
   }
 
