@@ -69,6 +69,8 @@ const runLayout = (collection: CollectionReturnValue, cy: Core, autoGroup?: bool
   }
 
   const elementsToLayout = collection.union(collection.connectedNodes());
+  console.log('RUNNING LAYOUT');
+  console.log('elementsToLayout', elementsToLayout);
   elementsToLayout.layout(coseLayoutOptions(cy, clusters)).run();
 }
 
@@ -78,8 +80,10 @@ const updateGroupNodes = (cy: Core, nodes: Set<GraphNode>, graphContextGroupChil
     const node = cy.getElementById(graphNode.elementId);
 
     if (groupId) {
+      console.log('moving node to groupId', groupId);
       node.move({ parent: groupId });
     } else {
+      console.log('moving node to null');
       node.move({ parent: null });
     }
   });
@@ -197,6 +201,7 @@ interface GraphProps {
 }
 
 export default function Graph(props: GraphProps): React.ReactElement {
+  console.log('--------------rerendering Graph----------------------------');
   const {
     //autoGroup,
     elementStyles,
@@ -222,7 +227,30 @@ export default function Graph(props: GraphProps): React.ReactElement {
   const [edges, setEdges] = useState<Set<GraphEdge>>(() => new Set([]));
   const [groups, setGroups] = useState<Set<GraphGroup>>(() => new Set([]));
   const contextNodes = new Set<GraphNode>(Array.from(graphContextNodes.values()));
+  const contextEdges = new Set<GraphEdge>(Array.from(graphContextEdges.values()));
   const contextGroups = new Set<GraphGroup>(Array.from(graphContextGroups.values()));
+
+  useEffect(() => {
+    console.log('rerendered with new graphContextEdges', graphContextEdges);
+  }, [graphContextEdges]);
+  useEffect(() => {
+    console.log('rerendered with new graphContextNodes', graphContextNodes);
+  }, [graphContextNodes]);
+  useEffect(() => {
+    console.log('rerendered with new graphContextGroups', graphContextGroups);
+  }, [graphContextGroups]);
+  useEffect(() => {
+    console.log('rerendered with new graphContextGroupChildren', graphContextGroupChildren);
+  }, [graphContextGroupChildren]);
+  useEffect(() => {
+    console.log('rerendered with new contextEdges', contextEdges);
+  }, [contextEdges]);
+  useEffect(() => {
+    console.log('rerendered with new contextNodes', contextNodes);
+  }, [contextNodes]);
+  useEffect(() => {
+    console.log('rerendered with new contextGroups', contextGroups);
+  }, [contextGroups]);
 
   const positiveGroupDiff = useCallback(() => setDifference<GraphGroup>(contextGroups, groups), [contextGroups, groups]);
   const negativeGroupDiff = useCallback(() => setDifference<GraphGroup>(groups, contextGroups), [contextGroups, groups]);
@@ -305,6 +333,7 @@ export default function Graph(props: GraphProps): React.ReactElement {
 
   useEffect(() => {
     if (ref.current && !cy) {
+      console.log('setting up cytoscape');
       cytoscape.use(cose);
       setCy(cytoscape({
         container: ref.current,
@@ -325,6 +354,7 @@ export default function Graph(props: GraphProps): React.ReactElement {
 
   useEffect(() => {
     if (cy && elementStyles) {
+      console.log('updating styles');
       updateStyles(cy, elementStyles);
     }
   }, [cy, elementStyles]);
