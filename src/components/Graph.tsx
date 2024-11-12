@@ -263,7 +263,9 @@ export default function Graph(props: GraphProps): React.ReactElement {
         setGroups(new Set<GraphGroup>([...groups].filter(element => !negativeGDiff.has(element))));
       }
 
-      removeElements(cy, diff);
+      if (diff.size > 0) {
+        removeElements(cy, diff);
+      }
     }
   }, [cy, graphContextEdges, graphContextNodes, graphContextGroups]);
 
@@ -289,7 +291,9 @@ export default function Graph(props: GraphProps): React.ReactElement {
         setGroups(new Set([...groups, ...positiveGDiff]));
       }
 
-      addElements(cy, diff);
+      if (diff.size > 0) {
+        addElements(cy, diff);
+      }
     }
   }, [cy, graphContextEdges, graphContextNodes, graphContextGroups]);
 
