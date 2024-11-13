@@ -8,9 +8,11 @@ declare class GraphEdge {
     sourceId: NodeID;
     targetId: NodeID;
     weight: number;
-    constructor({ sourceId, targetId, weight }: {
+    edgeType: string;
+    constructor({ sourceId, targetId, edgeType, weight }: {
         sourceId: string;
         targetId: string;
+        edgeType: string;
         weight: number;
     });
     toJSON(): string;
