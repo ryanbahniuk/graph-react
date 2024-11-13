@@ -10,10 +10,11 @@ class GraphNode {
   nodeType: string;
 
   constructor({ id, label, nodeType }: { id: string, label?: string, nodeType?: string }) {
-    this.id = Symbol.for(id);
-    this.label = label || id;
-    this.elementId = id as NodeID;
     this.nodeType = nodeType || 'Generic';
+    const representation = `GraphNode:${this.nodeType}:${id}`;
+    this.id = Symbol.for(representation);
+    this.label = label || id;
+    this.elementId = representation as NodeID;
   }
 
   toJSON(): string {
@@ -29,6 +30,7 @@ class GraphNode {
       data: {
         id: this.elementId,
         label: this.label,
+        nodeType: this.nodeType,
       }
     }
   }

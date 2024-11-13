@@ -11,9 +11,11 @@ class GraphEdge {
   sourceId: NodeID;
   targetId: NodeID;
   weight: number;
+  edgeType: string;
 
-  constructor({ sourceId, targetId, weight }: { sourceId: string, targetId: string, weight: number }) {
-    const representation = `GraphEdge:${sourceId}${targetId}`;
+  constructor({ sourceId, targetId, edgeType, weight }: { sourceId: string, targetId: string, edgeType: string, weight: number }) {
+    this.edgeType = edgeType || 'Generic';
+    const representation = `GraphEdge:${this.edgeType}:${sourceId}${targetId}`;
     this.id = Symbol.for(representation);
     this.elementId = representation as EdgeID;
     this.sourceId = sourceId as NodeID;
@@ -36,6 +38,7 @@ class GraphEdge {
         source: this.sourceId,
         target: this.targetId,
 				weight: this.weight,
+        edgetype: this.edgeType,
       }
     }
   }
