@@ -5,6 +5,13 @@ import { type NodeID } from './GraphNode';
 
 export type EdgeID = ID<'Edge'>;
 
+const defaultEdgeType = 'Generic';
+
+export const buildGraphEdgeID = (sourceId: string, targetId: string, edgeType?: string) => {
+  const eType = edgeType || defaultEdgeType;
+  return `GraphEdge:${eType}:${sourceId}${targetId}`;
+}
+
 class GraphEdge {
   id: symbol;
   elementId: EdgeID;
@@ -13,9 +20,9 @@ class GraphEdge {
   weight: number;
   edgeType: string;
 
-  constructor({ sourceId, targetId, edgeType, weight }: { sourceId: string, targetId: string, edgeType: string, weight: number }) {
-    this.edgeType = edgeType || 'Generic';
-    const representation = `GraphEdge:${this.edgeType}:${sourceId}${targetId}`;
+  constructor({ sourceId, targetId, edgeType, weight }: { sourceId: string, targetId: string, edgeType?: string, weight: number }) {
+    this.edgeType = edgeType || defaultEdgeType;
+    const representation = buildGraphEdgeID(sourceId, targetId, edgeType);
     this.id = Symbol.for(representation);
     this.elementId = representation as EdgeID;
     this.sourceId = sourceId as NodeID;

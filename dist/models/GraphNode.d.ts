@@ -1,6 +1,7 @@
 import { type ElementDefinition } from 'cytoscape';
 import { type ID } from '../types/ID';
 export type NodeID = ID<'Node'>;
+export declare const buildGraphNodeID: (id: string, nodeType?: string) => string;
 declare class GraphNode {
     id: symbol;
     elementId: NodeID;

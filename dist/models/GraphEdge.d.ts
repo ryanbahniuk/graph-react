@@ -2,6 +2,7 @@ import { type ElementDefinition } from 'cytoscape';
 import { type ID } from '../types/ID';
 import { type NodeID } from './GraphNode';
 export type EdgeID = ID<'Edge'>;
+export declare const buildGraphEdgeID: (sourceId: string, targetId: string, edgeType?: string) => string;
 declare class GraphEdge {
     id: symbol;
     elementId: EdgeID;
@@ -12,7 +13,7 @@ declare class GraphEdge {
     constructor({ sourceId, targetId, edgeType, weight }: {
         sourceId: string;
         targetId: string;
-        edgeType: string;
+        edgeType?: string;
         weight: number;
     });
     toJSON(): string;

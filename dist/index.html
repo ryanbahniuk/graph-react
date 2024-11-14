@@ -29,13 +29,13 @@
           if (nodeIds.length > 1) {
             const nodes = [];
             nodeIds.forEach((nodeId) => {
-              const node = window.nodes.find((node) => node.elementId === nodeId);
+              const node = window.nodes.find((node) => node.elementId === GraphComponent.buildGraphNodeID(nodeId));
               nodes.push(node);
             });
 
             graphContext.addNodes(nodes);
           } else {
-            const node = window.nodes.find((node) => node.elementId === nodeIds[0]);
+            const node = window.nodes.find((node) => node.elementId === GraphComponent.buildGraphNodeID(nodeIds[0]));
             graphContext.addNode(node);
           }
         }
@@ -74,7 +74,9 @@
           e.preventDefault();
           const form = e.target;
           const textInput = form.querySelector("#remove-node-id");
-          const nodeIds = textInput.value.split(', ');
+          const nodeIds = textInput.value.split(', ').map((nodeId) => {
+            return GraphComponent.buildGraphNodeID(nodeId);
+          });
           if (nodeIds.length > 1) {
             graphContext.removeNodes(nodeIds);
           } else {
@@ -97,7 +99,9 @@
           e.preventDefault();
           const form = e.target;
           const groupId = form.querySelector("#group-form-group-id").value;
-          const nodeIds = form.querySelector("#group-form-node-id").value.split(', ');
+          const nodeIds = form.querySelector("#group-form-node-id").value.split(', ').map((nodeId) => {
+            return GraphComponent.buildGraphNodeID(nodeId);
+          });
           graphContext.addNodesToGroup(groupId, nodeIds);
         }
 
@@ -117,7 +121,9 @@
           e.preventDefault();
           const form = e.target;
           const groupId = form.querySelector("#remove-group-form-group-id").value;
-          const nodeIds = form.querySelector("#remove-group-form-node-id").value.split(', ');
+          const nodeIds = form.querySelector("#remove-group-form-node-id").value.split(', ').map((nodeId) => {
+            return GraphComponent.buildGraphNodeID(nodeId);
+          });
           graphContext.removeNodesFromGroup(groupId, nodeIds);
         }
 

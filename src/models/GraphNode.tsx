@@ -3,6 +3,13 @@ import { type ID } from '../types/ID';
 
 export type NodeID = ID<'Node'>;
 
+const defaultNodeType = 'Generic';
+
+export const buildGraphNodeID = (id: string, nodeType?: string) => {
+  const nType = nodeType || defaultNodeType;
+  return `GraphNode:${nType}:${id}`;
+}
+
 class GraphNode {
   id: symbol;
   elementId: NodeID;
@@ -10,8 +17,8 @@ class GraphNode {
   nodeType: string;
 
   constructor({ id, label, nodeType }: { id: string, label?: string, nodeType?: string }) {
-    this.nodeType = nodeType || 'Generic';
-    const representation = `GraphNode:${this.nodeType}:${id}`;
+    this.nodeType = nodeType || defaultNodeType;
+    const representation = buildGraphNodeID(id, nodeType);
     this.id = Symbol.for(representation);
     this.label = label || id;
     this.elementId = representation as NodeID;

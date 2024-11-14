@@ -1,5 +1,5 @@
-import GraphNode from './models/GraphNode';
-import GraphEdge from './models/GraphEdge';
+import GraphNode, { buildGraphNodeID } from './models/GraphNode';
+import GraphEdge, { buildGraphEdgeID } from './models/GraphEdge';
 import GraphGroup from './models/GraphGroup';
 import { primaryConnections, secondaryConnections } from './helpers/nodeHelpers';
 
@@ -21,6 +21,8 @@ const result = {
   GraphProvider,
   useGraph,
   nodeHelpers,
+  buildGraphNodeID,
+  buildGraphEdgeID,
 };
 
 export default result;
