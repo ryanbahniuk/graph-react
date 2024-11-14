@@ -9,7 +9,7 @@ const defaultEdgeType = 'Generic';
 
 export const buildGraphEdgeID = (sourceId: string, targetId: string, edgeType?: string): EdgeID => {
   const eType = edgeType || defaultEdgeType;
-  return `GraphEdge:${eType}:${sourceId}${targetId}` as EdgeID;
+  return `GraphEdge.${eType}.${sourceId}${targetId}` as EdgeID;
 }
 
 class GraphEdge {

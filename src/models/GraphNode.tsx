@@ -7,7 +7,7 @@ const defaultNodeType = 'Generic';
 
 export const buildGraphNodeID = (id: string, nodeType?: string): NodeID => {
   const nType = nodeType || defaultNodeType;
-  return `GraphNode:${nType}:${id}` as NodeID;
+  return `GraphNode.${nType}.${id}` as NodeID;
 }
 
 class GraphNode {
