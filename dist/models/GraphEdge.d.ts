@@ -2,7 +2,7 @@ import { type ElementDefinition } from 'cytoscape';
 import { type ID } from '../types/ID';
 import { type NodeID } from './GraphNode';
 export type EdgeID = ID<'Edge'>;
-export declare const buildGraphEdgeID: (sourceId: string, targetId: string, edgeType?: string) => string;
+export declare const buildGraphEdgeID: (sourceId: string, targetId: string, edgeType?: string) => EdgeID;
 declare class GraphEdge {
     id: symbol;
     elementId: EdgeID;

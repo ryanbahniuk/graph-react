@@ -5,9 +5,9 @@ export type NodeID = ID<'Node'>;
 
 const defaultNodeType = 'Generic';
 
-export const buildGraphNodeID = (id: string, nodeType?: string) => {
+export const buildGraphNodeID = (id: string, nodeType?: string): NodeID => {
   const nType = nodeType || defaultNodeType;
-  return `GraphNode:${nType}:${id}`;
+  return `GraphNode:${nType}:${id}` as NodeID;
 }
 
 class GraphNode {
@@ -15,13 +15,15 @@ class GraphNode {
   elementId: NodeID;
   label: string;
   nodeType: string;
+  rawId: string;
 
   constructor({ id, label, nodeType }: { id: string, label?: string, nodeType?: string }) {
     this.nodeType = nodeType || defaultNodeType;
     const representation = buildGraphNodeID(id, nodeType);
     this.id = Symbol.for(representation);
     this.label = label || id;
-    this.elementId = representation as NodeID;
+    this.elementId = representation;
+    this.rawId = id;
   }
 
   toJSON(): string {

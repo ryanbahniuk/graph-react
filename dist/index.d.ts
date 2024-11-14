@@ -16,7 +16,7 @@ declare const result: {
         primaryConnections: (node: import("cytoscape").NodeSingular) => import("cytoscape").NodeSingular[];
         secondaryConnections: (node: import("cytoscape").NodeSingular) => import("cytoscape").NodeSingular[];
     };
-    buildGraphNodeID: (id: string, nodeType?: string) => string;
-    buildGraphEdgeID: (sourceId: string, targetId: string, edgeType?: string) => string;
+    buildGraphNodeID: (id: string, nodeType?: string) => import("./models/GraphNode").NodeID;
+    buildGraphEdgeID: (sourceId: string, targetId: string, edgeType?: string) => import("./models/GraphEdge").EdgeID;
 };
 export default result;

@@ -7,9 +7,9 @@ export type EdgeID = ID<'Edge'>;
 
 const defaultEdgeType = 'Generic';
 
-export const buildGraphEdgeID = (sourceId: string, targetId: string, edgeType?: string) => {
+export const buildGraphEdgeID = (sourceId: string, targetId: string, edgeType?: string): EdgeID => {
   const eType = edgeType || defaultEdgeType;
-  return `GraphEdge:${eType}:${sourceId}${targetId}`;
+  return `GraphEdge:${eType}:${sourceId}${targetId}` as EdgeID;
 }
 
 class GraphEdge {
@@ -24,7 +24,7 @@ class GraphEdge {
     this.edgeType = edgeType || defaultEdgeType;
     const representation = buildGraphEdgeID(sourceId, targetId, edgeType);
     this.id = Symbol.for(representation);
-    this.elementId = representation as EdgeID;
+    this.elementId = representation;
     this.sourceId = sourceId as NodeID;
     this.targetId = targetId as NodeID;
     this.weight = weight;
