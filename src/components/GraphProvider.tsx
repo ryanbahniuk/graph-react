@@ -24,6 +24,7 @@ export type GraphContextType = {
   removeGroup: (id: GroupID) => void;
   addNodesToGroup: (id: GroupID, nodeIds: NodeID[]) => void;
   removeNodesFromGroup: (id: GroupID, nodeIds: NodeID[]) => void;
+  setNodesForGroup: (id: GroupID, nodeIds: NodeID[]) => void;
   clear: () => void;
 };
 
@@ -116,6 +117,30 @@ export const GraphProvider: FC<PropsWithChildren> = ({ children }) => {
     });
   }, [groups, nodes]);
 
+  const setNodesForGroup = useCallback((groupId: GroupID, nodeIds: NodeID[]) => {
+    if (!groups.has(groupId)) {
+      return;
+    }
+
+    const newGroupChildrenMap = new Map(groupChildren);
+
+    groupChildren.forEach((g, n) => {
+      if (g === groupId) {
+        if (nodeIds.includes(n)) {
+          newGroupChildrenMap.set(n, g)
+        } else {
+          newGroupChildrenMap.delete(n)
+        }
+      }
+    });
+
+    nodeIds.forEach((nodeId) => {
+      newGroupChildrenMap.set(nodeId, groupId)
+    });
+
+    setGroupChildren(newGroupChildrenMap);
+  }, [groups, groupChildren]);
+
   const addNodesToGroup = useCallback((groupId: GroupID, nodeIds: NodeID[]) => {
     if (!groups.has(groupId)) {
       return;
@@ -166,6 +191,7 @@ export const GraphProvider: FC<PropsWithChildren> = ({ children }) => {
     removeGroup,
     addNodesToGroup,
     removeNodesFromGroup,
+    setNodesForGroup,
     clear,
   };
 

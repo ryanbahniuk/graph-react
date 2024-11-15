@@ -21,6 +21,7 @@ export type GraphContextType = {
     removeGroup: (id: GroupID) => void;
     addNodesToGroup: (id: GroupID, nodeIds: NodeID[]) => void;
     removeNodesFromGroup: (id: GroupID, nodeIds: NodeID[]) => void;
+    setNodesForGroup: (id: GroupID, nodeIds: NodeID[]) => void;
     clear: () => void;
 };
 export declare const GraphContext: React.Context<GraphContextType | null>;

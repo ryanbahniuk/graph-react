@@ -28,7 +28,7 @@
         "display": "flex",
       };
 			const sidebarStyle = {
-				"width": "200px",
+				"width": "300px",
 			};
 			const style = {
 				"boxSizing": "border-box",
@@ -155,6 +155,28 @@
         );
       };
 
+      const SetNodeGroupForm = () => {
+        const graphContext = GraphComponent.useGraph();
+
+        const submit = (e) => {
+          e.preventDefault();
+          const form = e.target;
+          const groupId = form.querySelector("#set-group-form-group-id").value;
+          const nodeIds = form.querySelector("#set-group-form-node-id").value.split(', ').map((nodeId) => {
+            return GraphComponent.buildGraphNodeID(nodeId);
+          });
+          graphContext.setNodesForGroup(groupId, nodeIds);
+        }
+
+        return (
+          <form onSubmit={submit}>
+            <input type="text" id="set-group-form-group-id" placeholder="Group ID"/>
+            <input type="text" id="set-group-form-node-id" placeholder="Node ID(s)"/>
+            <button>Set in Group</button>
+          </form>
+        );
+      };
+
       const AddNodesButton = () => {
         const graphContext = GraphComponent.useGraph();
 
@@ -250,6 +272,7 @@
                 <AddGroupForm />
                 <AddNodeToGroupForm />
                 <RemoveNodeFromGroupForm />
+                <SetNodeGroupForm />
                 <ClearButton />
                 <div style={ { display: "flex" } }>
                   <Groups />
