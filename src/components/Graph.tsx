@@ -4,6 +4,7 @@ import cytoscape from 'cytoscape';
 import {
   type CollectionReturnValue,
 	type Core,
+  type SingularElementArgument,
 	type EventObject,
 	type EdgeSingular,
 	type NodeSingular,
@@ -32,7 +33,6 @@ const baseCoseLayoutOptions: CoseBilkentLayoutOptions = {
   randomize: true,
   initialEnergyOnIncremental: 0.3,
   animate: 'end',
-  fit: true,
   animationDuration: 1000,
   animationEasing: 'ease-in-out',
 };
@@ -41,10 +41,19 @@ const baseNodeRepulsion = 15000;
 const baseIdealEdgeLength = 150;
 const baseEdgeElasticity = 100;
 
-const coseLayoutOptions = (cy: Core, clusters: string[][]): CoseBilkentLayoutOptions => {
+const shouldZoom = (elements: CollectionReturnValue) => {
+  if (elements.length === 1) {
+    return !elements.first().classes().includes('group');
+  }
+
+  return true;
+}
+
+const coseLayoutOptions = (cy: Core, elementsToLayout: CollectionReturnValue, clusters: string[][]): CoseBilkentLayoutOptions => {
   return {
     ...baseCoseLayoutOptions,
     clusters,
+    fit: shouldZoom(elementsToLayout),
     nodeRepulsion: baseNodeRepulsion * clusters.length,
     idealEdgeLength: baseIdealEdgeLength * 1.5,
     edgeElasticity: baseEdgeElasticity * 0.5,
@@ -69,7 +78,7 @@ const runLayout = (collection: CollectionReturnValue, cy: Core, autoGroup?: bool
   }
 
   const elementsToLayout = collection.union(collection.connectedNodes());
-  elementsToLayout.layout(coseLayoutOptions(cy, clusters)).run();
+  elementsToLayout.layout(coseLayoutOptions(cy, elementsToLayout, clusters)).run();
 }
 
 const updateGroupNodes = (cy: Core, nodes: Set<GraphNode>, graphContextGroupChildren: GroupChildrenMap) => {
