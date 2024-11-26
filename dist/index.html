@@ -18,25 +18,34 @@
         "border": "1px solid grey",
 			};
 
-      const AddNodeForm = () => {
-        const graphContext = GraphComponent.useGraph();
-
+      const AddNodeForm = ({ setNodes }) => {
         const addNode = (e) => {
           e.preventDefault();
           const form = e.target;
           const textInput = form.querySelector("#add-node-id");
           const nodeIds = textInput.value.split(', ');
           if (nodeIds.length > 1) {
-            const nodes = [];
-            nodeIds.forEach((nodeId) => {
-              const node = window.nodes.find((node) => node.elementId === GraphComponent.buildGraphNodeID(nodeId));
-              nodes.push(node);
-            });
+            setNodes((existing) => {
+              const newNodes = { ...existing };
 
-            graphContext.addNodes(nodes);
+              nodeIds.forEach((nodeId) => {
+                const node = window.nodes.find((node) => node.elementId === GraphComponent.buildGraphNodeID(nodeId));
+                if (node) {
+                  newNodes[node.elementId] = node;
+                }
+              });
+              
+              return newNodes;
+            });
           } else {
             const node = window.nodes.find((node) => node.elementId === GraphComponent.buildGraphNodeID(nodeIds[0]));
-            graphContext.addNode(node);
+            if (node) {
+              setNodes((existing) => {
+                const newNodes = { ...existing };
+                newNodes[node.elementId] = node;
+                return newNodes;
+              });
+            }
           }
         }
 
@@ -48,15 +57,18 @@
         );
       };
 
-      const AddGroupForm = () => {
-        const graphContext = GraphComponent.useGraph();
-
+      const AddGroupForm = ({ setGroups }) => {
         const addGroup = (e) => {
           e.preventDefault();
           const form = e.target;
           const textInput = form.querySelector("#add-group-id");
           const groupId = textInput.value;
-          graphContext.addGroup(groupId);
+          setGroups((existing) => {
+            const newGroups = { ...existing };
+            const group = new GraphComponent.GraphGroup({ id: groupId });
+            newGroups[groupId] = group;
+            return newGroups;
+          });
         }
 
         return (
@@ -67,21 +79,20 @@
         );
       };
 
-      const RemoveNodeForm = () => {
-        const graphContext = GraphComponent.useGraph();
-
+      const RemoveNodeForm = ({ setNodes }) => {
         const removeNode = (e) => {
           e.preventDefault();
           const form = e.target;
           const textInput = form.querySelector("#remove-node-id");
-          const nodeIds = textInput.value.split(', ').map((nodeId) => {
-            return GraphComponent.buildGraphNodeID(nodeId);
+
+          setNodes((existing) => {
+            const newNodes = { ...existing };
+            textInput.value.split(', ').map((nodeId) => {
+              const elementId = GraphComponent.buildGraphNodeID(nodeId);
+              delete newNodes[elementId];
+            });
+            return newNodes;
           });
-          if (nodeIds.length > 1) {
-            graphContext.removeNodes(nodeIds);
-          } else {
-            graphContext.removeNode(nodeIds[0]);
-          }
         }
 
         return (
@@ -92,17 +103,19 @@
         );
       };
 
-      const AddNodeToGroupForm = () => {
-        const graphContext = GraphComponent.useGraph();
-
+      const AddNodeToGroupForm = ({ setGroupNodes }) => {
         const submit = (e) => {
           e.preventDefault();
           const form = e.target;
           const groupId = form.querySelector("#group-form-group-id").value;
-          const nodeIds = form.querySelector("#group-form-node-id").value.split(', ').map((nodeId) => {
-            return GraphComponent.buildGraphNodeID(nodeId);
+          setGroupNodes((existing) => {
+            const newGroupNodes = { ...existing };
+            form.querySelector("#group-form-node-id").value.split(', ').map((nodeId) => {
+              const elementId = GraphComponent.buildGraphNodeID(nodeId);
+              newGroupNodes[elementId] = groupId;
+            });
+            return newGroupNodes;
           });
-          graphContext.addNodesToGroup(groupId, nodeIds);
         }
 
         return (
@@ -114,55 +127,35 @@
         );
       };
 
-      const RemoveNodeFromGroupForm = () => {
-        const graphContext = GraphComponent.useGraph();
-
+      const RemoveNodeFromGroupForm = ({ setGroupNodes }) => {
         const submit = (e) => {
           e.preventDefault();
           const form = e.target;
-          const groupId = form.querySelector("#remove-group-form-group-id").value;
-          const nodeIds = form.querySelector("#remove-group-form-node-id").value.split(', ').map((nodeId) => {
-            return GraphComponent.buildGraphNodeID(nodeId);
+          setGroupNodes((existing) => {
+            const newGroupNodes = { ...existing };
+            form.querySelector("#remove-group-form-node-id").value.split(', ').map((nodeId) => {
+              const elementId = GraphComponent.buildGraphNodeID(nodeId);
+              delete newGroupNodes[elementId];
+            });
+            return newGroupNodes;
           });
-          graphContext.removeNodesFromGroup(groupId, nodeIds);
         }
 
         return (
           <form onSubmit={submit}>
-            <input type="text" id="remove-group-form-group-id" placeholder="Group ID"/>
             <input type="text" id="remove-group-form-node-id" placeholder="Node ID(s)"/>
             <button>Remove from Group</button>
           </form>
         );
       };
 
-      const SetNodeGroupForm = () => {
-        const graphContext = GraphComponent.useGraph();
-
-        const submit = (e) => {
-          e.preventDefault();
-          const form = e.target;
-          const groupId = form.querySelector("#set-group-form-group-id").value;
-          const nodeIds = form.querySelector("#set-group-form-node-id").value.split(', ').map((nodeId) => {
-            return GraphComponent.buildGraphNodeID(nodeId);
-          });
-          graphContext.setNodesForGroup(groupId, nodeIds);
-        }
-
-        return (
-          <form onSubmit={submit}>
-            <input type="text" id="set-group-form-group-id" placeholder="Group ID"/>
-            <input type="text" id="set-group-form-node-id" placeholder="Node ID(s)"/>
-            <button>Set in Group</button>
-          </form>
-        );
-      };
-
-      const AddNodesButton = () => {
-        const graphContext = GraphComponent.useGraph();
-
+      const AddNodesButton = ({ setNodes }) => {
         const addNodes = () => {
-          graphContext.addNodes(window.nodes);
+          const newNodes = {}
+          window.nodes.forEach((node) => {
+            newNodes[node.elementId] = node;
+          });
+          setNodes(newNodes);
         }
 
         return (
@@ -170,23 +163,13 @@
         );
       };
 
-      const ClearButton = () => {
-        const graphContext = GraphComponent.useGraph();
-
-        const clear = () => {
-          graphContext.clear();
-        }
-
-        return (
-          <button onClick={clear}>Clear Data</button>
-        );
-      };
-
-      const AddEdgesButton = () => {
-        const graphContext = GraphComponent.useGraph();
-
+      const AddEdgesButton = ({ setEdges }) => {
         const addEdges = () => {
-          graphContext.addEdges(window.edges);
+          const newEdges = {}
+          window.edges.forEach((edge) => {
+            newEdges[edge.elementId] = edge;
+          });
+          setEdges(newEdges);
         }
 
         return (
@@ -194,11 +177,15 @@
         );
       };
 
-      const Groups = () => {
-        const graphContext = GraphComponent.useGraph();
-
-        const list = Array.from(graphContext.groups.values()).map((group) => {
-          const onRemoveClick = () => graphContext.removeGroup(group.elementId);
+      const Groups = ({ groups, setGroups }) => {
+        const list = Object.values(groups).map((group) => {
+          const onRemoveClick = () => {
+            setGroups((existing) => {
+              const newGroups = { ...existing };
+              newGroups[group.elementId];
+              return newGroups;
+            });
+          };
 
           return (
             <div key={group.elementId}>{group.label} - <span onClick={onRemoveClick}>Remove</span></div>
@@ -213,11 +200,16 @@
         );
       };
 
-      const Nodes = () => {
-        const graphContext = GraphComponent.useGraph();
-
-        const list = Array.from(graphContext.nodes.values()).map((node) => {
-          const onRemoveClick = () => graphContext.removeNode(node.elementId);
+      const Nodes = ({ nodes, setNodes }) => {
+        const list = Object.values(nodes).map((node) => {
+          const onRemoveClick = (e) => {
+            e.preventDefault();
+            setNodes((existing) => {
+              const newNodes = { ...existing };
+              delete newNodes[node.elementId];
+              return newNodes;
+            });
+          };
 
           return (
             <div key={node.elementId}>{node.elementId} - <span onClick={onRemoveClick}>Remove</span></div>
@@ -234,6 +226,10 @@
 
       const App = () => {
         const [elementStyles, setElementStyles] = React.useState(new Map);
+        const [nodes, setNodes] = React.useState({});
+        const [edges, setEdges] = React.useState({});
+        const [groups, setGroups] = React.useState({});
+        const [groupNodes, setGroupNodes] = React.useState({});
 
         const onNodeClick = React.useCallback((node) => {
           const selectedNodeId = node.data('id');
@@ -242,29 +238,41 @@
           setElementStyles(newElementStyles);
         }, [setElementStyles]);
 
+        const clearAll = React.useCallback((e) => {
+          setNodes({});
+          setEdges({});
+          setGroups({});
+          setGroupNodes({});
+        }, []);
+
         return (
-          <GraphComponent.GraphProvider>
-            <div style={parentStyle}>
-              <div style={sidebarStyle}>
-                <AddNodesButton />
-                <AddEdgesButton />
-                <AddNodeForm />
-                <RemoveNodeForm />
-                <AddGroupForm />
-                <AddNodeToGroupForm />
-                <RemoveNodeFromGroupForm />
-                <SetNodeGroupForm />
-                <ClearButton />
-                <div style={ { display: "flex" } }>
-                  <Groups />
-                  <Nodes />
-                </div>
-              </div>
-              <div>
-                <GraphComponent.Graph style={style} elementStyles={elementStyles} onNodeClick={onNodeClick} />
+          <div style={parentStyle}>
+            <div style={sidebarStyle}>
+              <AddNodesButton setNodes={setNodes} />
+              <AddEdgesButton setEdges={setEdges} />
+              <AddNodeForm setNodes={setNodes} />
+              <RemoveNodeForm setNodes={setNodes} />
+              <AddGroupForm setGroups={setGroups} />
+              <AddNodeToGroupForm setGroupNodes={setGroupNodes} />
+              <RemoveNodeFromGroupForm setGroupNodes={setGroupNodes} />
+              <button onClick={clearAll}>Clear</button>
+              <div style={ { display: "flex" } }>
+                <Groups groups={groups} setGroups={setGroups} />
+                <Nodes nodes={nodes} setNodes={setNodes} />
               </div>
             </div>
-          </GraphComponent.GraphProvider>
+            <div>
+              <GraphComponent.Graph
+                style={style}
+                elementStyles={elementStyles}
+                onNodeClick={onNodeClick}
+                nodes={nodes}
+                edges={edges}
+                groups={groups}
+                groupNodes={groupNodes}
+              />
+            </div>
+          </div>
         )
       }
       const container = document.getElementById('react');
